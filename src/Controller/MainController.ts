@@ -1,44 +1,52 @@
-import { Controller } from './Controller';
-import { Context, Markup } from 'telegraf';
+import { Context, Markup, Telegraf } from 'telegraf';
 import { ButtonEnum } from '../Enum/ButtonEnum';
 import { Repository } from 'typeorm/repository/Repository';
 import { Goal } from '../Entity/Goal';
+import { InlineKeyboardMarkup } from '@telegraf/types/markup';
+import { Locale } from '../Locale/Locale';
 
-export class MainController extends Controller {
+export class MainController {
 
-	constructor (
+	public constructor (
+		protected bot: Telegraf,
+		protected locale: Locale,
 		protected goalRepository: Repository<Goal>
-	) {
-		super();
-	}
+	) {}
 
 	public initListeners (): void {
 		this.bot.start((ctx) => this.handleStart(ctx));
+		this.bot.action(ButtonEnum.START, (ctx) => this.handleActionStart(ctx));
 	}
 
 	protected async handleStart (ctx: Context): Promise<void> {
-		if (!ctx.from?.id) {
-			return;
-		}
+		ctx.reply(
+			this.locale.get('START'),
+			await this.getKeyboard(ctx)
+		).then();
+	}
 
-		const countGoals = await this.goalRepository.countBy({
-			user: ctx.from?.id
-		});
+	protected async handleActionStart (ctx: Context): Promise<void> {
+		ctx.editMessageCaption(
+			this.locale.get('START'),
+			await this.getKeyboard(ctx)
+		).then();
+	}
+
+	protected async getKeyboard (ctx: Context): Promise<Markup.Markup<InlineKeyboardMarkup>> {
+		const countGoals = ctx.from?.id
+			? await this.goalRepository.countBy({ user: ctx.from.id })
+			: 0;
 
 		const keyboard = [];
 
-		keyboard.push(Markup.button.callback(this.locale.get(ButtonEnum.NEXT), ButtonEnum.NEXT));
-
-		if (countGoals <= 0) {
+		if (countGoals > 0) {
+			keyboard.push(Markup.button.callback(this.locale.get(ButtonEnum.NEXT), ButtonEnum.NEXT));
 			keyboard.push(Markup.button.callback(this.locale.get(ButtonEnum.LIST), ButtonEnum.LIST));
 		}
 
 		keyboard.push(Markup.button.callback(this.locale.get(ButtonEnum.NEW), ButtonEnum.NEW));
 
-		ctx.reply(
-			this.locale.get('START'),
-			Markup.inlineKeyboard([keyboard])
-		).then();
+		return Markup.inlineKeyboard([keyboard]);
 	}
 
 }

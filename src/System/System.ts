@@ -1,31 +1,40 @@
-import { Telegraf } from 'telegraf';
-import { Config } from '../Config/Config';
+import { ObjectLiteral } from 'typeorm/common/ObjectLiteral';
+import { ConfigFactory } from '../Config/ConfigFactory';
+import { ControllerFactory } from '../Controller/ControllerFactory';
+import { LocaleFactory } from '../Locale/LocaleFactory';
+import { SystemFactory } from './SystemFactory';
 
 export class System {
 
-	protected static instance: System;
+	protected static instanceMap = new Map();
+	protected static factoryMap: Map<any, any> = new Map([
+		...(new ConfigFactory).init(),
+		...(new ControllerFactory).init(),
+		...(new LocaleFactory).init(),
+		...(new SystemFactory).init()
+	]);
 
-	protected constructor (
-		protected bot: Telegraf
-	) {}
+	public static get<I extends ObjectLiteral> (c: new (...args: any) => I): I {
+		let instance: I | undefined = this.instanceMap.get(c);
 
-	public static init (): System {
-		const config = Config.getInstance();
+		if (instance !== undefined) {
+			return instance;
+		}
 
-		return this.instance = new System(
-			new Telegraf(config.getToken())
-		);
+		instance = this.factory(c);
+
+		this.instanceMap.set(c, instance);
+
+		return instance;
 	}
 
-	public static getBot () {
-		return this.instance.bot;
-	}
+	protected static factory<I extends ObjectLiteral> (c: new (...args: any) => I): I {
+		const factory: (() => I) | undefined = this.factoryMap.get(c);
 
-	public static launchBot () {
-		this.instance.bot.launch().then();
+		if (factory === undefined) {
+			throw new Error('Class ' + c + ' not factory');
+		}
 
-		// Enable graceful stop
-		process.once('SIGINT', () => this.instance.bot.stop('SIGINT'));
-		process.once('SIGTERM', () => this.instance.bot.stop('SIGTERM'));
+		return factory();
 	}
 }

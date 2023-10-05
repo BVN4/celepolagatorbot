@@ -10,27 +10,11 @@ interface LocaleTexts {
 
 export class Locale {
 
-	protected static instance: Locale | null = null;
-
 	public static readonly DEFAULT_LANG = 'ru';
 
 	protected langMap: LocaleLangMap = {
 		ru: ru
 	};
-
-	protected constructor () {}
-
-	protected static init (): Locale {
-		return new Locale();
-	}
-
-	public static getInstance (): Locale {
-		if (!this.instance) {
-			this.instance = this.init();
-		}
-
-		return this.instance;
-	}
 
 	public getTexts (lang: string = Locale.DEFAULT_LANG): LocaleTexts {
 		return this.langMap[lang];

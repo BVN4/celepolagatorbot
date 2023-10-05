@@ -3,26 +3,13 @@ import { Context, Markup } from 'telegraf';
 import { ButtonEnum } from '../Enum/ButtonEnum';
 import { Repository } from 'typeorm/repository/Repository';
 import { Goal } from '../Entity/Goal';
-import { DB } from '../DB';
 
 export class MainController extends Controller {
-
-	protected static instance: MainController | null = null;
 
 	constructor (
 		protected goalRepository: Repository<Goal>
 	) {
 		super();
-	}
-
-	public static getInstance (): MainController {
-		if (!this.instance) {
-			this.instance = new MainController(
-				DB.getRepository(Goal)
-			);
-		}
-
-		return this.instance;
 	}
 
 	public initListeners (): void {

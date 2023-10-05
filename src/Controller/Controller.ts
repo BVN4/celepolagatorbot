@@ -7,9 +7,9 @@ export abstract class Controller {
 	protected bot: Telegraf;
 	protected locale: Locale;
 
-	constructor () {
-		this.bot = System.getBot();
-		this.locale = Locale.getInstance();
+	protected constructor () {
+		this.bot = System.get(Telegraf);
+		this.locale = System.get(Locale);
 	}
 
 	public abstract initListeners (): void

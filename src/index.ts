@@ -1,15 +1,18 @@
 import { System } from './System/System';
 import { MainController } from './Controller/MainController';
 import { DB } from './DB';
-import { Config } from './Config/Config';
+import { Telegraf } from 'telegraf';
 
 !async function () {
-	Config.getInstance();
-
 	await DB.init();
-	System.init();
 
-	MainController.getInstance().initListeners();
+	System.get(MainController).initListeners();
 
-	System.launchBot();
+	const bot = System.get(Telegraf);
+
+	bot.launch().then();
+
+	// Enable graceful stop
+	process.once('SIGINT', () => bot.stop('SIGINT'));
+	process.once('SIGTERM', () => bot.stop('SIGTERM'));
 }();

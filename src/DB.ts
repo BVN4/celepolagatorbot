@@ -8,6 +8,7 @@ import { Repository } from 'typeorm/repository/Repository';
 import { Config } from './Config/Config';
 import { Goal } from './Entity/Goal';
 import { Checkpoint } from './Entity/Checkpoint';
+import { System } from './System/System';
 
 export class DB {
 
@@ -25,7 +26,7 @@ export class DB {
 	 * Инициализирует подключение к БД
 	 */
 	public static async init () {
-		const config = Config.getInstance();
+		const config = System.get(Config);
 
 		this.source = new DataSource({
 			type: this.TYPE,

@@ -1,20 +1,23 @@
 import { System } from './System/System';
 import { MainController } from './Controller/MainController';
 import { DB } from './DB';
-import { Telegraf } from 'telegraf';
-import { NewGoalController } from './Controller/NewGoalController';
-import { ScenesService } from './Service/ScenesService';
+import { session, Telegraf } from 'telegraf';
+import { GoalController } from './Controller/GoalController';
+import { BotContext } from './System/Bot';
 
 !async function () {
 	await DB.init();
 
-	const bot = System.get(Telegraf);
-	const scenesService = System.get(ScenesService);
+	const bot = System.get(Telegraf<BotContext>);
+
+	bot.use(session());
+	bot.use((ctx, next) => {
+		ctx.session ??= {};
+		return next();
+	});
 
 	System.get(MainController).initListeners();
-	System.get(NewGoalController).initListeners();
-
-	scenesService.init();
+	System.get(GoalController).initListeners();
 
 	bot.launch().then();
 

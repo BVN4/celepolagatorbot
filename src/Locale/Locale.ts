@@ -26,4 +26,18 @@ export class Locale {
 		return texts[key] ?? key;
 	}
 
+	public prepare (
+		key: string,
+		values: string[] = [],
+		lang: string = Locale.DEFAULT_LANG
+	): string {
+		let text = this.get(key, lang);
+
+		for (const value of values) {
+			text = text.replace('{%s}', value);
+		}
+
+		return text;
+	}
+
 }

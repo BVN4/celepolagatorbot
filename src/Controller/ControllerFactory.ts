@@ -3,37 +3,26 @@ import { ObjectLiteral } from 'typeorm';
 import { MainController } from './MainController';
 import { DB } from '../DB';
 import { Goal } from '../Entity/Goal';
-import { NewGoalController } from './NewGoalController';
-import { Checkpoint } from '../Entity/Checkpoint';
+import { GoalController } from './GoalController';
 import { System } from '../System/System';
-import { BotSceneContext, ScenesService } from '../Service/ScenesService';
 import { Telegraf } from 'telegraf';
 import { Locale } from '../Locale/Locale';
+import { BotContext } from '../System/Bot';
 
 export class ControllerFactory extends Factory {
 
 	public init<I extends ObjectLiteral> (): FactoryMap<I> {
-		this.map.set(MainController, () => this.makeMainController());
-		this.map.set(NewGoalController, () => this.makeNewGoalController());
+		this.map.set(MainController, () => this.makeDefaultController());
+		this.map.set(GoalController, () => this.makeDefaultController());
 
 		return this.map;
 	}
 
-	protected makeMainController (): MainController {
+	protected makeDefaultController (): MainController {
 		return new MainController(
-			System.get(Telegraf),
+			System.get(Telegraf<BotContext>),
 			System.get(Locale),
 			DB.getRepository(Goal)
-		);
-	}
-
-	protected makeNewGoalController (): NewGoalController {
-		return new NewGoalController(
-			System.get(Telegraf<BotSceneContext>),
-			System.get(Locale),
-			System.get(ScenesService),
-			DB.getRepository(Goal),
-			DB.getRepository(Checkpoint)
 		);
 	}
 

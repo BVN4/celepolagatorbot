@@ -1,8 +1,5 @@
 export enum ButtonEnum {
 	START = 'BUTTON_START',
-	BACK = 'BUTTON_BACK',
-
-	NEXT = 'BUTTON_NEXT',
-	LIST = 'BUTTON_LIST',
 	NEW = 'BUTTON_NEW',
+	VIDEO_URL = 'BUTTON_VIDEO_URL',
 }

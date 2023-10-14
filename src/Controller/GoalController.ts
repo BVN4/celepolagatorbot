@@ -117,7 +117,7 @@ export class GoalController {
 				.execute()
 				.catch(console.error);
 
-			const lastGoalName = ctx.session.goals.pop().name;
+			const lastGoalName = ctx.session.goals[ctx.session.goals.length - 1].name;
 
 			ctx.session.goals = [];
 			ctx.session.reg = false;

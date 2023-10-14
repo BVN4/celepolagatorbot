@@ -8,6 +8,10 @@ interface LocaleTexts {
 	[key: string]: string;
 }
 
+interface ValueToPrepare {
+	[key: string]: string;
+}
+
 export class Locale {
 
 	public static readonly DEFAULT_LANG = 'ru';
@@ -28,13 +32,13 @@ export class Locale {
 
 	public prepare (
 		key: string,
-		values: string[] = [],
+		values: ValueToPrepare = {},
 		lang: string = Locale.DEFAULT_LANG
 	): string {
 		let text = this.get(key, lang);
 
-		for (const value of values) {
-			text = text.replace('{%s}', value);
+		for (const key in values) {
+			text = text.replace('%' + key + '%', values[key]);
 		}
 
 		return text;

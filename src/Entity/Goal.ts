@@ -1,13 +1,15 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { User } from './User';
+import { GoalStatusEnum } from '../Enum/GoalStatusEnum';
 
 /**
  * CREATE TABLE `goals` (
  * 	`id` INT(10) NOT NULL AUTO_INCREMENT,
- * 	`name` TEXT NULL DEFAULT NULL COLLATE 'utf8mb4_0900_ai_ci',
- * 	`status` TINYINT(1) NULL DEFAULT '0',
- * 	`user` INT(10) NULL DEFAULT NULL,
- * 	PRIMARY KEY (`id`) USING BTREE,
- * 	INDEX `user` (`user`) USING BTREE
+ * 	`name` VARCHAR(255) NOT NULL COLLATE 'utf8mb4_0900_ai_ci',
+ * 	`status` TINYINT(3) NOT NULL DEFAULT '0',
+ * 	`timestamp` BIGINT(20) UNSIGNED NOT NULL DEFAULT '0',
+ * 	`userId` INT(10) NOT NULL,
+ * 	PRIMARY KEY (`id`) USING BTREE
  * )
  * COLLATE='utf8mb4_0900_ai_ci'
  * ENGINE=InnoDB
@@ -17,14 +19,20 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 @Entity({ name: 'goals' })
 export class Goal {
 	@PrimaryGeneratedColumn()
-	id?: number;
+	id!: number;
 
 	@Column()
-	name?: string;
+	name!: string;
+
+	@Column({ type: 'tinyint', default: GoalStatusEnum.WAIT })
+	status: GoalStatusEnum = GoalStatusEnum.WAIT;
+
+	@Column({ type: 'bigint', default: 0 })
+	timestamp: number = 0;
 
 	@Column()
-	status?: boolean;
+	userId!: number;
 
-	@Column()
-	user?: number;
+	@ManyToOne(() => User, (user) => user.goals)
+	user!: User
 }

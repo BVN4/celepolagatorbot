@@ -7,6 +7,7 @@ import { ObjectLiteral } from 'typeorm/common/ObjectLiteral';
 import { Repository } from 'typeorm/repository/Repository';
 import { Config } from './Config/Config';
 import { Goal } from './Entity/Goal';
+import { User } from './Entity/User';
 import { System } from './System/System';
 
 export class DB {
@@ -14,7 +15,8 @@ export class DB {
 	public static readonly TYPE = 'mysql';
 
 	public static readonly entities = [
-		Goal
+		Goal,
+		User
 	];
 
 	/** Коннект к БД */

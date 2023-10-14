@@ -11,11 +11,13 @@
   "dependencies": {
     "dotenv": "^16.3.1",
     "mysql": "^2.18.1",
+    "node-cron": "^3.0.2",
     "reflect-metadata": "^0.1.13",
     "telegraf": "^4.14.0",
     "typeorm": "^0.3.17"
   },
   "devDependencies": {
-    "@types/node": "^20.8.2"
+    "@types/node": "^20.8.2",
+    "@types/node-cron": "^3.0.9"
   }
 }

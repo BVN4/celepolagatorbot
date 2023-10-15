@@ -1,4 +1,5 @@
-export class Time {
+export class Time
+{
 	public static readonly SECOND = 1000;
 	public static readonly MINUTE = 60 * Time.SECOND;
 	public static readonly HOUR = 60 * Time.MINUTE;

@@ -6,8 +6,12 @@ import { SystemFactory } from './SystemFactory';
 import { ServiceFactory } from '../Service/ServiceFactory';
 import { ViewFactory } from '../View/ViewFactory';
 
-export class System {
-
+/**
+ * Несложный DI контейнер, собственного производства.
+ * Этот класс не должен фигурировать нигде в коде, только в фабриках
+ */
+export class System
+{
 	protected static instanceMap = new Map();
 	protected static factoryMap: Map<any, any> = new Map([
 		...(new ConfigFactory).init(),
@@ -18,7 +22,8 @@ export class System {
 		...(new ViewFactory).init()
 	]);
 
-	public static get<I extends ObjectLiteral> (c: new (...args: any) => I): I {
+	public static get<I extends ObjectLiteral> (c: new (...args: any) => I): I
+	{
 		let instance: I | undefined = this.instanceMap.get(c);
 
 		if (instance !== undefined) {
@@ -32,7 +37,8 @@ export class System {
 		return instance;
 	}
 
-	protected static factory<I extends ObjectLiteral> (c: new (...args: any) => I): I {
+	protected static factory<I extends ObjectLiteral> (c: new (...args: any) => I): I
+	{
 		const factory: (() => I) | undefined = this.factoryMap.get(c);
 
 		if (factory === undefined) {

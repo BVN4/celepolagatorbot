@@ -1,7 +1,5 @@
 import 'reflect-metadata';
 import { DataSource } from 'typeorm';
-import { SelectQueryBuilder } from 'typeorm/query-builder/SelectQueryBuilder';
-import { QueryRunner } from 'typeorm/query-runner/QueryRunner';
 import { EntityTarget } from 'typeorm/common/EntityTarget';
 import { ObjectLiteral } from 'typeorm/common/ObjectLiteral';
 import { Repository } from 'typeorm/repository/Repository';
@@ -10,8 +8,8 @@ import { Goal } from './Entity/Goal';
 import { User } from './Entity/User';
 import { System } from './System/System';
 
-export class DB {
-
+export class DB
+{
 	public static readonly TYPE = 'mysql';
 
 	public static readonly entities = [
@@ -22,10 +20,9 @@ export class DB {
 	/** Коннект к БД */
 	protected static source: DataSource;
 
-	/**
-	 * Инициализирует подключение к БД
-	 */
-	public static async init () {
+	/** Инициализирует подключение к БД */
+	public static async init (): Promise<void>
+	{
 		const config = System.get(Config);
 
 		this.source = new DataSource({
@@ -42,20 +39,9 @@ export class DB {
 		await this.source.initialize();
 	}
 
-	/** Возвращает билдер запросов */
-	public static query<Entity extends ObjectLiteral> (
-		target: EntityTarget<Entity>,
-		alias?: string,
-		queryRunner?: QueryRunner
-	): SelectQueryBuilder<Entity> {
-		return this.getRepository(target)
-			.createQueryBuilder(alias, queryRunner);
-	}
-
 	public static getRepository<Entity extends ObjectLiteral> (
 		target: EntityTarget<Entity>
 	): Repository<Entity> {
 		return this.source.getRepository(target);
 	}
-
 }

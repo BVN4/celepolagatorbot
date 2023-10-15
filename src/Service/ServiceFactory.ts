@@ -8,22 +8,30 @@ import { DB } from '../DB';
 import { Goal } from '../Entity/Goal';
 import { User } from '../Entity/User';
 
+/**
+ * Сервис - Domain Layer.
+ * Рабочие лошадки, представляющие собой наборы методов-инструментов, выполняющие различные задачи.
+ * Вообще-то, ответственности у сервисов должно быть по-больше, однако вся бизнес-логика уже в Controller.
+ */
 export class ServiceFactory extends Factory
 {
-	public init<I extends ObjectLiteral> (): FactoryMap<I> {
+	public init<I extends ObjectLiteral> (): FactoryMap<I>
+	{
 		this.map.set(BotService, () => this.makeBotService());
 		this.map.set(GoalService, () => this.makeGoalService());
 
 		return this.map;
 	}
 
-	protected makeBotService (): BotService {
+	protected makeBotService (): BotService
+	{
 		return new BotService(
 			System.get(Telegraf)
 		);
 	}
 
-	protected makeGoalService (): GoalService {
+	protected makeGoalService (): GoalService
+	{
 		return new GoalService(
 			DB.getRepository(Goal),
 			DB.getRepository(User)

@@ -4,14 +4,21 @@ import { Config } from './Config';
 import dotenv from 'dotenv';
 import process from 'process';
 
-export class ConfigFactory extends Factory {
-	public init<I extends ObjectLiteral> (): FactoryMap<I> {
+/**
+ * В Config должны быть интерфейсы для окружения.
+ * Никаких process.env и подобного в исходном коде.
+ */
+export class ConfigFactory extends Factory
+{
+	public init<I extends ObjectLiteral> (): FactoryMap<I>
+	{
 		this.map.set(Config, () => this.makeConfig());
 
 		return this.map;
 	}
 
-	protected makeConfig (): Config {
+	protected makeConfig (): Config
+	{
 		dotenv.config();
 
 		if (!process.env.BOT_TOKEN) {

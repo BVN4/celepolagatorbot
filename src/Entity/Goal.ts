@@ -17,7 +17,8 @@ import { GoalStatusEnum } from '../Enum/GoalStatusEnum';
  */
 
 @Entity({ name: 'goals' })
-export class Goal {
+export class Goal
+{
 	@PrimaryGeneratedColumn()
 	id!: number;
 
@@ -34,5 +35,5 @@ export class Goal {
 	userId!: number;
 
 	@ManyToOne(() => User, (user) => user.goals)
-	user!: User
+	user!: User;
 }

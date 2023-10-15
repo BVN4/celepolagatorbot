@@ -12,7 +12,8 @@ import { Goal } from './Goal';
  */
 
 @Entity({ name: 'g_users' })
-export class User {
+export class User
+{
 	@PrimaryColumn()
 	id!: number;
 

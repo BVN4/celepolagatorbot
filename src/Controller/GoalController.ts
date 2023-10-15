@@ -2,7 +2,7 @@ import { Goal } from '../Entity/Goal';
 import { deunionize, Telegraf } from 'telegraf';
 import { ButtonEnum } from '../Enum/ButtonEnum';
 import { Time } from '../Enum/Time';
-import { BotContext, BotService, BotSession } from '../Service/BotService';
+import { BotContext, BotService } from '../Service/BotService';
 import { message } from 'telegraf/filters';
 import cron from 'node-cron';
 import { GoalStatusEnum } from '../Enum/GoalStatusEnum';
@@ -34,7 +34,8 @@ export class GoalController
 	)
 	{}
 
-	public init (): void {
+	public init (): void
+	{
 		this.bot.action(ButtonEnum.NEW, (ctx) => this.handleEnter(ctx));
 		this.bot.action(ButtonEnum.FORGET_CONFIRM, (ctx) => this.handleForget(ctx));
 
@@ -45,7 +46,8 @@ export class GoalController
 		cron.schedule('*/10 * * * *', () => this.handleCron());
 	}
 
-	protected handleEnter (ctx: BotContext): void {
+	protected handleEnter (ctx: BotContext): void
+	{
 		ctx.session.state = GoalController.STATE;
 
 		ctx.session.goals = [];
@@ -57,7 +59,8 @@ export class GoalController
 		this.goalView.watchVideo(ctx, GoalController.TIME_TO_WATCH);
 	}
 
-	protected async handleMessage (ctx: BotContext): Promise<void> {
+	protected async handleMessage (ctx: BotContext): Promise<void>
+	{
 		if (!ctx.message || !ctx.from?.id || ctx.session.state !== GoalController.STATE) {
 			return;
 		}
@@ -144,7 +147,8 @@ export class GoalController
 		}
 	}
 
-	protected async handleCron (): Promise<void> {
+	protected async handleCron (): Promise<void>
+	{
 		const now = Date.now();
 
 		const users = await this.goalService.getGoalsGroupByUser();
@@ -154,10 +158,15 @@ export class GoalController
 				continue;
 			}
 
+			let session = this.botService.getSession(user.id);
+
+			if (session.waitResultAnswer || session.waitTodayAnswer) {
+				continue; // Уже ждём ответа, не будем спамить
+			}
+
 			const goal = user.goals[0];
-			let session: BotSession = {
-				state: GoalController.STATE
-			};
+
+			session['state'] = GoalController.STATE;
 
 			if (goal.timestamp < now) {
 				this.goalView.askResultQuestion(user.id, goal.name);
@@ -171,7 +180,8 @@ export class GoalController
 		}
 	}
 
-	protected async handleForget (ctx: BotContext): Promise<void> {
+	protected async handleForget (ctx: BotContext): Promise<void>
+	{
 		if (!ctx.from?.id) {
 			return;
 		}
@@ -181,10 +191,10 @@ export class GoalController
 		this.goalView.forgotten(ctx);
 	}
 
-	protected async handleNext (ctx: BotContext): Promise<void> {
+	protected async handleNext (ctx: BotContext): Promise<void>
+	{
 		if (!ctx.from?.id) {
 			return;
 		}
 	}
-
 }

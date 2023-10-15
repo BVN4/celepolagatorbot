@@ -12,7 +12,8 @@ export class GoalService
 	)
 	{}
 
-	public async getGoalsGroupByUser (): Promise<User[]> {
+	public async getGoalsGroupByUser (): Promise<User[]>
+	{
 		return await this.userRepository.find({
 			relations: ['goals'],
 			where: {
@@ -29,7 +30,8 @@ export class GoalService
 		});
 	};
 
-	public async forgetGoals (userId: number): Promise<UpdateResult> {
+	public async forgetGoals (userId: number): Promise<UpdateResult>
+	{
 		return await this.goalRepository
 			.createQueryBuilder()
 			.update()
@@ -38,7 +40,9 @@ export class GoalService
 			.execute();
 	}
 
-	public async softCreateUser (userId: number): Promise<User> {
+	// TODO: На самом деле, мы не должны создавать User в GoalService
+	public async softCreateUser (userId: number): Promise<User>
+	{
 		let user = await this.userRepository.findOneBy({ id: userId });
 
 		if (!user) {
@@ -50,14 +54,16 @@ export class GoalService
 		return user;
 	}
 
-	public async insertGoals (goals: Goal[]): Promise<void> {
+	public async insertGoals (goals: Goal[]): Promise<void>
+	{
 		await this.goalRepository.createQueryBuilder()
 			.insert()
 			.values(goals)
 			.execute();
 	}
 
-	public createGoal (text: string, userId: number): void {
+	public createGoal (text: string, userId: number): void
+	{
 		let goal = this.goalRepository.create();
 
 		goal.name = text;
@@ -68,17 +74,32 @@ export class GoalService
 			.catch(console.error);
 	}
 
-	public async updateStatus (goalId: number, status: GoalStatusEnum): Promise<void> {
+	public async updateStatus (goalId: number, status: GoalStatusEnum): Promise<void>
+	{
 		await this.goalRepository.update(goalId, {
 			status: status
 		});
 	}
 
-	public async getNextGoal (userId: number): Promise<Goal | null> {
+	public async getNextGoal (userId: number): Promise<Goal | null>
+	{
 		return await this.goalRepository.findOne({
 			where: {
 				status: GoalStatusEnum.WAIT,
 				timestamp: Not(0),
+				userId: userId
+			},
+			order: {
+				timestamp: 'ASC'
+			}
+		});
+	}
+
+	public async getGoalsByUser (userId: number): Promise<Goal[]>
+	{
+		return await this.goalRepository.find({
+			where: {
+				status: GoalStatusEnum.WAIT,
 				userId: userId
 			},
 			order: {

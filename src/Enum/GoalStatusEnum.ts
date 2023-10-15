@@ -1,4 +1,5 @@
-export enum GoalStatusEnum {
+export enum GoalStatusEnum
+{
 	WAIT,
 	SUCCESS,
 	FAILED,

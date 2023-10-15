@@ -1,4 +1,5 @@
 import { Context, session, SessionStore, Telegraf } from 'telegraf';
+import { CommandEnum } from '../Enum/CommandEnum';
 
 export interface BotSession
 {
@@ -29,6 +30,20 @@ export class BotService
 				}
 			})
 		);
+	}
+
+	public initCommands (): void
+	{
+		this.telegraf.telegram.setMyCommands([
+			{
+				command: 'start',
+				description: 'Start message'
+			},
+			{
+				command: CommandEnum.NEXT,
+				description: 'Greetings command'
+			}
+		]).catch(console.error);
 	}
 
 	public getSession (userId: number): BotSession

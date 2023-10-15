@@ -69,7 +69,8 @@ export class GoalView
 		).catch(console.error);
 	}
 
-	public forgotten (ctx: BotContext): void {
+	public forgotten (ctx: BotContext): void
+	{
 		const text = this.locale.get('FORGOTTEN');
 		const keyboard = Markup.inlineKeyboard([
 			Markup.button.callback(this.locale.get(ButtonEnum.START), ButtonEnum.START)
@@ -78,8 +79,29 @@ export class GoalView
 		ctx.editMessageText(text, keyboard).catch(console.error);
 	}
 
-	public reply (ctx: BotContext, text: string): void {
+	public reply (ctx: BotContext, text: string): void
+	{
 		ctx.reply(this.locale.get(text))
 			.catch(console.error);
+	}
+
+	public congratulateComplete (ctx: BotContext, goalName: string): void
+	{
+		ctx.reply(
+			this.locale.prepare('CONGRATULATE_COMPLETE', {
+				goal: goalName
+			}),
+			Markup.removeKeyboard()
+		).catch(console.error);
+	}
+
+	public noMoreGoals (ctx: BotContext): void
+	{
+		const text = this.locale.get('NO_MORE_GOALS');
+		const keyboard = Markup.inlineKeyboard([
+			Markup.button.callback(this.locale.get(ButtonEnum.START), ButtonEnum.START)
+		]);
+
+		ctx.reply(text, keyboard).catch(console.error);
 	}
 }

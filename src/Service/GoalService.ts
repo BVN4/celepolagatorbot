@@ -3,6 +3,7 @@ import { Goal } from '../Entity/Goal';
 import { User } from '../Entity/User';
 import { GoalStatusEnum } from '../Enum/GoalStatusEnum';
 import { Not, UpdateResult } from 'typeorm';
+import { GoalTypeEnum } from '../Enum/GoalTypeEnum';
 
 export class GoalService
 {
@@ -62,12 +63,13 @@ export class GoalService
 			.execute();
 	}
 
-	public createGoal (text: string, userId: number): void
+	public createGoal (userId: number, text: string, type: GoalTypeEnum = GoalTypeEnum.TODAY): void
 	{
 		let goal = this.goalRepository.create();
 
 		goal.name = text;
 		goal.userId = userId;
+		goal.type = type;
 		goal.timestamp = Date.now();
 
 		this.goalRepository.save(goal)
@@ -86,7 +88,6 @@ export class GoalService
 		return await this.goalRepository.findOne({
 			where: {
 				status: GoalStatusEnum.WAIT,
-				timestamp: Not(0),
 				userId: userId
 			},
 			order: {
@@ -106,5 +107,25 @@ export class GoalService
 				timestamp: 'ASC'
 			}
 		});
+	}
+
+	public async completeGoal (userId: number): Promise<Goal | null>
+	{
+		await this.goalRepository.update({
+			status: GoalStatusEnum.WAIT,
+			type: GoalTypeEnum.TODAY,
+			userId: userId
+		}, {
+			status: GoalStatusEnum.SUCCESS
+		});
+
+		let nextGoal = await this.getNextGoal(userId);
+
+		if (nextGoal) {
+			nextGoal.status = GoalStatusEnum.SUCCESS;
+			await this.goalRepository.save(nextGoal);
+		}
+
+		return nextGoal;
 	}
 }

@@ -13,6 +13,7 @@ process
 
 	const botService = System.get(BotService);
 
+	botService.initCommands();
 	botService.initSession();
 
 	System.get(MainController).init();

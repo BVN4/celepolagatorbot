@@ -8,6 +8,8 @@ import cron from 'node-cron';
 import { GoalStatusEnum } from '../Enum/GoalStatusEnum';
 import { GoalView } from '../View/GoalView';
 import { GoalService } from '../Service/GoalService';
+import { GoalTypeEnum } from '../Enum/GoalTypeEnum';
+import { CommandEnum } from '../Enum/CommandEnum';
 
 export class GoalController
 {
@@ -39,9 +41,9 @@ export class GoalController
 		this.bot.action(ButtonEnum.NEW, (ctx) => this.handleEnter(ctx));
 		this.bot.action(ButtonEnum.FORGET_CONFIRM, (ctx) => this.handleForget(ctx));
 
-		this.bot.on(message('text'), (ctx) => this.handleMessage(ctx));
+		this.bot.command(CommandEnum.NEXT, (ctx) => this.handleNext(ctx));
 
-		this.bot.command('next', (ctx) => this.handleNext(ctx));
+		this.bot.on(message('text'), (ctx) => this.handleMessage(ctx));
 
 		cron.schedule('*/10 * * * *', () => this.handleCron());
 	}
@@ -92,7 +94,12 @@ export class GoalController
 
 			ctx.session.goals.push({
 				name: text,
-				timestamp: index ? GoalController.questions[index - 1].time + Date.now() : 0,
+				type: index ? GoalTypeEnum.PRIMARY : GoalTypeEnum.GLOBAL,
+				timestamp: index
+					// TODO: Костыль. Не понимаем временных рамок глобальной цели,
+					//  потому ставим максимальное, чтобы не ломать сортировки
+					? GoalController.questions[index - 1].time + Date.now()
+					: GoalController.questions[index].time + Date.now() + Time.YEAR,
 				userId: ctx.from.id
 			});
 
@@ -121,7 +128,7 @@ export class GoalController
 				return;
 			}
 
-			this.goalService.createGoal(text, ctx.from.id);
+			this.goalService.createGoal(ctx.from.id, text);
 
 			this.goalView.reply(ctx, 'GOAL_WAIT');
 
@@ -195,6 +202,21 @@ export class GoalController
 	{
 		if (!ctx.from?.id) {
 			return;
+		}
+
+		const completedGoal = await this.goalService.completeGoal(ctx.from.id);
+
+		if (completedGoal) {
+			this.goalView.congratulateComplete(ctx, completedGoal.name);
+		}
+
+		const nextGoal = await this.goalService.getNextGoal(ctx.from.id);
+
+		if (nextGoal) {
+			this.goalView.askTodayQuestion(ctx.from.id, nextGoal.name);
+			ctx.session.waitTodayAnswer = true;
+		} else {
+			this.goalView.noMoreGoals(ctx);
 		}
 	}
 }

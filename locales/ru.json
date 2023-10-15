@@ -22,5 +22,7 @@
 	"BUTTON_FORGET_CONFIRM": "Да",
 	"BUTTON_FORGET_BACK": "Нет",
 	"FORGOTTEN": "Все цели забыты",
-	"BUTTON_START": "К началу"
+	"BUTTON_START": "К началу",
+	"CONGRATULATE_COMPLETE": "Ура! Поздравляю с выполнением цели \"%goal%\"",
+	"NO_MORE_GOALS": "Все цели достигнуты. Целей больше нет"
 }

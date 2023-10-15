@@ -46,7 +46,7 @@ export class GoalController
 
 		this.bot.on(message('text'), (ctx) => this.handleMessage(ctx));
 
-		cron.schedule('*/10 * * * *', () => this.handleCron());
+		cron.schedule('0 9 * * *', () => this.handleCron());
 	}
 
 	protected handleEnter (ctx: BotContext): void
@@ -136,10 +136,10 @@ export class GoalController
 
 		if (ctx.session.waitAnswer === WaitAnswerEnum.RESULT_QUESTION) {
 			if (/Да, удалось/iu.test(text)) {
-				await this.goalService.updateStatus(ctx.session.waitResultAnswer, GoalStatusEnum.SUCCESS);
+				await this.goalService.updateStatus(ctx.session.waitAnswerForGoal, GoalStatusEnum.SUCCESS);
 				this.goalView.reply(ctx, 'GOAL_SUCCESS');
 			} else {
-				await this.goalService.updateStatus(ctx.session.waitResultAnswer, GoalStatusEnum.FAILED);
+				await this.goalService.updateStatus(ctx.session.waitAnswerForGoal, GoalStatusEnum.FAILED);
 				this.goalView.reply(ctx, 'GOAL_FAILED');
 			}
 

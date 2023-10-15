@@ -3,6 +3,7 @@ import { BotContext } from '../Service/BotService';
 import { Locale } from '../Locale/Locale';
 import { Goal } from '../Entity/Goal';
 import { ButtonEnum } from '../Enum/ButtonEnum';
+import { GoalTypeEnum } from '../Enum/GoalTypeEnum';
 
 export class MainView
 {
@@ -24,7 +25,7 @@ export class MainView
 			let target: Goal | null = null;
 
 			for (const goal of goals) {
-				if (goal.timestamp == 0) {
+				if (goal.type === GoalTypeEnum.GLOBAL) {
 					mainGoal = goal;
 					continue;
 				}

@@ -1,0 +1,7 @@
+export enum WaitAnswerEnum
+{
+	WATCH_VIDEO,
+	REGISTRATION,
+	TODAY_QUESTION,
+	RESULT_QUESTION
+}

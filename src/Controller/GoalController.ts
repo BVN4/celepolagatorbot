@@ -10,6 +10,7 @@ import { GoalView } from '../View/GoalView';
 import { GoalService } from '../Service/GoalService';
 import { GoalTypeEnum } from '../Enum/GoalTypeEnum';
 import { CommandEnum } from '../Enum/CommandEnum';
+import { WaitAnswerEnum } from '../Enum/WaitAnswerEnum';
 
 export class GoalController
 {
@@ -54,8 +55,7 @@ export class GoalController
 
 		ctx.session.goals = [];
 
-		ctx.session.reg = true;
-		ctx.session.wait = true;
+		ctx.session.waitAnswer = WaitAnswerEnum.WATCH_VIDEO;
 		ctx.session.timeToWait = Date.now() + GoalController.TIME_TO_WATCH;
 
 		this.goalView.watchVideo(ctx, GoalController.TIME_TO_WATCH);
@@ -74,17 +74,17 @@ export class GoalController
 			return;
 		}
 
-		if (ctx.session.wait) {
+		if (ctx.session.waitAnswer === WaitAnswerEnum.WATCH_VIDEO) {
 			if (ctx.session.timeToWait > Date.now() || !/да/i.test(text)) {
 				return; // Игнорируем, клиент ещё смотрит видео
 			}
 
 			this.goalView.reply(ctx, 'MAIN_QUESTION');
-			ctx.session.wait = false;
+			ctx.session.waitAnswer = WaitAnswerEnum.REGISTRATION;
 			return;
 		}
 
-		if (ctx.session.reg) {
+		if (ctx.session.waitAnswer === WaitAnswerEnum.REGISTRATION) {
 			const index = ctx.session.goals.length;
 
 			if (text.length > 255) {
@@ -115,14 +115,13 @@ export class GoalController
 			const lastGoalName = ctx.session.goals[ctx.session.goals.length - 1].name;
 
 			ctx.session.goals = [];
-			ctx.session.reg = false;
 
 			this.goalView.askTodayQuestion(user.id, lastGoalName);
-			ctx.session.waitTodayAnswer = true;
+			ctx.session.waitAnswer = WaitAnswerEnum.TODAY_QUESTION
 			return;
 		}
 
-		if (ctx.session.waitTodayAnswer) {
+		if (ctx.session.waitAnswer === WaitAnswerEnum.TODAY_QUESTION) {
 			if (text.length > 255) {
 				this.goalView.reply(ctx, 'ERROR_VERY_LONG_GOAL');
 				return;
@@ -132,10 +131,10 @@ export class GoalController
 
 			this.goalView.reply(ctx, 'GOAL_WAIT');
 
-			ctx.session.waitTodayAnswer = false;
+			ctx.session.waitAnswer = null;
 		}
 
-		if (ctx.session.waitResultAnswer) {
+		if (ctx.session.waitAnswer === WaitAnswerEnum.RESULT_QUESTION) {
 			if (/Да, удалось/iu.test(text)) {
 				await this.goalService.updateStatus(ctx.session.waitResultAnswer, GoalStatusEnum.SUCCESS);
 				this.goalView.reply(ctx, 'GOAL_SUCCESS');
@@ -144,12 +143,12 @@ export class GoalController
 				this.goalView.reply(ctx, 'GOAL_FAILED');
 			}
 
-			ctx.session.waitResultAnswer = false;
+			ctx.session.waitAnswer = null;
 
 			const nextGoal = await this.goalService.getNextGoal(ctx.from.id);
 			if (nextGoal) {
 				this.goalView.askTodayQuestion(ctx.from.id, nextGoal.name);
-				ctx.session.waitTodayAnswer = true;
+				ctx.session.waitAnswer = WaitAnswerEnum.TODAY_QUESTION;
 			}
 		}
 	}
@@ -167,20 +166,21 @@ export class GoalController
 
 			let session = this.botService.getSession(user.id);
 
-			if (session.waitResultAnswer || session.waitTodayAnswer) {
+			if ([WaitAnswerEnum.RESULT_QUESTION, WaitAnswerEnum.TODAY_QUESTION].includes(session.waitAnswer)) {
 				continue; // Уже ждём ответа, не будем спамить
 			}
 
 			const goal = user.goals[0];
 
-			session['state'] = GoalController.STATE;
+			session.state = GoalController.STATE;
 
 			if (goal.timestamp < now) {
 				this.goalView.askResultQuestion(user.id, goal.name);
-				session['waitResultAnswer'] = goal.id;
+				session.waitAnswer = WaitAnswerEnum.RESULT_QUESTION;
+				session.waitAnswerForGoal = goal.id;
 			} else {
 				this.goalView.askTodayQuestion(user.id, goal.name);
-				session['waitTodayAnswer'] = true;
+				session.waitAnswer = WaitAnswerEnum.TODAY_QUESTION;
 			}
 
 			this.botService.setSession(user.id, session);
@@ -214,7 +214,7 @@ export class GoalController
 
 		if (nextGoal) {
 			this.goalView.askTodayQuestion(ctx.from.id, nextGoal.name);
-			ctx.session.waitTodayAnswer = true;
+			ctx.session.waitAnswer = WaitAnswerEnum.TODAY_QUESTION;
 		} else {
 			this.goalView.noMoreGoals(ctx);
 		}

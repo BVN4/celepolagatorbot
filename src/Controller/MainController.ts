@@ -24,6 +24,7 @@ export class MainController
 	protected async handleStart (ctx: BotContext, isAction: boolean = false): Promise<void>
 	{
 		ctx.session.state = null;
+		ctx.session.waitAnswer = null;
 
 		if (!ctx.from?.id) {
 			return;

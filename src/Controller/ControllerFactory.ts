@@ -8,9 +8,11 @@ import { System } from '../System/System';
 import { Telegraf } from 'telegraf';
 import { Locale } from '../Locale/Locale';
 import { BotContext, BotService } from '../Service/BotService';
-import { User } from '../Entity/User';
+import { GoalService } from '../Service/GoalService';
+import { GoalView } from '../View/GoalView';
 
-export class ControllerFactory extends Factory {
+export class ControllerFactory extends Factory
+{
 
 	public init<I extends ObjectLiteral> (): FactoryMap<I> {
 		this.map.set(MainController, () => this.makeMainController());
@@ -30,10 +32,9 @@ export class ControllerFactory extends Factory {
 	protected makeGoalController (): GoalController {
 		return new GoalController(
 			System.get(Telegraf<BotContext>),
-			System.get(Locale),
-			DB.getRepository(Goal),
-			DB.getRepository(User),
-			System.get(BotService)
+			System.get(BotService),
+			System.get(GoalService),
+			System.get(GoalView)
 		);
 	}
 

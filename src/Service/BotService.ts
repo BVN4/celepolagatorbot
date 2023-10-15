@@ -26,11 +26,11 @@ export class BotService {
 		);
 	}
 
-	public getSession (userId: number) {
+	public getSession (userId: number): BotSession {
 		return this.session.get(this.makeSessionKey(userId)) ?? {};
 	}
 
-	public setSession (userId: number, data: BotSession) {
+	public setSession (userId: number, data: BotSession): void {
 		this.session.set(this.makeSessionKey(userId), {
 			...this.getSession(userId),
 			...data

@@ -4,6 +4,7 @@ import { ControllerFactory } from '../Controller/ControllerFactory';
 import { LocaleFactory } from '../Locale/LocaleFactory';
 import { SystemFactory } from './SystemFactory';
 import { ServiceFactory } from '../Service/ServiceFactory';
+import { ViewFactory } from '../View/ViewFactory';
 
 export class System {
 
@@ -13,7 +14,8 @@ export class System {
 		...(new ControllerFactory).init(),
 		...(new LocaleFactory).init(),
 		...(new SystemFactory).init(),
-		...(new ServiceFactory).init()
+		...(new ServiceFactory).init(),
+		...(new ViewFactory).init()
 	]);
 
 	public static get<I extends ObjectLiteral> (c: new (...args: any) => I): I {

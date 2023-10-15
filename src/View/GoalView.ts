@@ -6,7 +6,7 @@ import { GoalController } from '../Controller/GoalController';
 
 export class GoalView
 {
-	protected static readonly VIDEO_URL = 'https://youtu.be/dQw4w9WgXcQ?si=CPCi9DMJyvB-Ikzh';
+	protected static readonly VIDEO_URL = 'https://youtu.be/0IgDIxow7T4?si=X85FmazZYqrkrTl4';
 
 	public constructor (
 		protected bot: Telegraf<BotContext>,

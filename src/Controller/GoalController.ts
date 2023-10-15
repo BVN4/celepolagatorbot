@@ -46,7 +46,7 @@ export class GoalController
 
 		this.bot.on(message('text'), (ctx) => this.handleMessage(ctx));
 
-		cron.schedule('0 9 * * *', () => this.handleCron());
+		cron.schedule('02 9 * * *', () => this.handleCron());
 	}
 
 	protected handleEnter (ctx: BotContext): void

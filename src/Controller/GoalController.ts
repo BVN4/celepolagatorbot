@@ -49,7 +49,7 @@ export class GoalController
 		cron.schedule('02 9 * * *', () => this.handleCron());
 	}
 
-	protected handleEnter (ctx: BotContext): void
+	protected async handleEnter (ctx: BotContext): Promise<void>
 	{
 		ctx.session.state = GoalController.STATE;
 
@@ -58,7 +58,13 @@ export class GoalController
 		ctx.session.waitAnswer = WaitAnswerEnum.WATCH_VIDEO;
 		ctx.session.timeToWait = Date.now() + GoalController.TIME_TO_WATCH;
 
-		this.goalView.watchVideo(ctx, GoalController.TIME_TO_WATCH);
+		await this.goalView.watchVideo(ctx);
+
+		setTimeout(() => {
+			if (ctx.session.waitAnswer === WaitAnswerEnum.WATCH_VIDEO) {
+				this.goalView.askYouWatched(ctx);
+			}
+		}, GoalController.TIME_TO_WATCH);
 	}
 
 	protected async handleMessage (ctx: BotContext): Promise<void>
@@ -117,7 +123,7 @@ export class GoalController
 			ctx.session.goals = [];
 
 			this.goalView.askTodayQuestion(user.id, lastGoalName);
-			ctx.session.waitAnswer = WaitAnswerEnum.TODAY_QUESTION
+			ctx.session.waitAnswer = WaitAnswerEnum.TODAY_QUESTION;
 			return;
 		}
 

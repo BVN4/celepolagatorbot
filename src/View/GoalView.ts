@@ -14,16 +14,14 @@ export class GoalView
 	)
 	{}
 
-	public watchVideo (ctx: BotContext, timeToWatch: number): void
+	public async watchVideo (ctx: BotContext): Promise<void>
 	{
-		ctx.editMessageText(
+		await ctx.editMessageText(
 			this.locale.get('WATCH_VIDEO'),
 			Markup.inlineKeyboard([
 				Markup.button.url(this.locale.get(ButtonEnum.VIDEO_URL), GoalView.VIDEO_URL)
 			])
-		).then(() => {
-			setTimeout(() => this.askYouWatched(ctx), timeToWatch);
-		}).catch(console.error);
+		);
 	}
 
 	public askYouWatched (ctx: BotContext): void

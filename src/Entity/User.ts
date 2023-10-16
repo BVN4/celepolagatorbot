@@ -3,7 +3,7 @@ import { Goal } from './Goal';
 
 /**
  * CREATE TABLE `g_users` (
- * 	`id` INT(10) NOT NULL,
+ * 	`id` BIGINT(19) NOT NULL,
  * 	PRIMARY KEY (`id`) USING BTREE
  * )
  * COLLATE='utf8mb4_0900_ai_ci'

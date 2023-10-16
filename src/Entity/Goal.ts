@@ -10,7 +10,7 @@ import { GoalTypeEnum } from '../Enum/GoalTypeEnum';
  * 	`status` TINYINT(3) NOT NULL DEFAULT '0',
  * 	`type` TINYINT(3) NOT NULL DEFAULT '0',
  * 	`timestamp` BIGINT(20) UNSIGNED NOT NULL DEFAULT '0',
- * 	`userId` INT(10) NOT NULL,
+ * 	`userId` BIGINT(19) NOT NULL,
  * 	PRIMARY KEY (`id`) USING BTREE
  * )
  * COLLATE='utf8mb4_0900_ai_ci'

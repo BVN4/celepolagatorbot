@@ -15,7 +15,7 @@ import { WaitAnswerEnum } from '../Enum/WaitAnswerEnum';
 export class GoalController
 {
 	protected static readonly STATE = 'Goal';
-	protected static readonly TIME_TO_WATCH = 5 * Time.SECOND;
+	protected static readonly TIME_TO_WATCH = 6 * Time.MINUTE;
 
 	// TODO: Костыль. Пока не понятно, где они должны лежать,
 	//  потому пока тут, но по хорошему, тут их быть не должно

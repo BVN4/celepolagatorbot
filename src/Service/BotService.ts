@@ -1,5 +1,6 @@
 import { Context, session, SessionStore, Telegraf } from 'telegraf';
 import { CommandEnum } from '../Enum/CommandEnum';
+import { Logger } from '../System/Logger';
 
 export interface BotSession
 {
@@ -9,6 +10,8 @@ export interface BotSession
 export interface BotContext extends Context
 {
 	session: BotSession;
+
+	logger: Logger;
 }
 
 export class BotService
@@ -16,7 +19,7 @@ export class BotService
 	protected session: SessionStore<BotSession> = new Map();
 
 	constructor (
-		protected telegraf: Telegraf
+		protected telegraf: Telegraf<BotContext>
 	)
 	{}
 
@@ -30,6 +33,17 @@ export class BotService
 				}
 			})
 		);
+	}
+
+	public initLogger (): void
+	{
+		this.telegraf.use(async (ctx: BotContext, next) => {
+			ctx.logger = Logger.initForContext(ctx);
+
+			ctx.logger.info('Handle. State: ' + ctx.session.state);
+
+			await next();
+		});
 	}
 
 	public initCommands (): void

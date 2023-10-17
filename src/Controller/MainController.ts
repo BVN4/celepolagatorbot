@@ -23,6 +23,8 @@ export class MainController
 
 	protected async handleStart (ctx: BotContext, isAction: boolean = false): Promise<void>
 	{
+		ctx.logger.info('Main handleStart');
+
 		ctx.session.state = null;
 		ctx.session.waitAnswer = null;
 
@@ -32,6 +34,10 @@ export class MainController
 
 		const goals = await this.goalService.getGoalsByUser(ctx.from.id);
 
-		this.mainView.startMessage(ctx, isAction, goals);
+		ctx.logger.info('Send message');
+
+		await this.mainView.startMessage(ctx, isAction, goals);
+
+		ctx.logger.info('Message sent');
 	}
 }

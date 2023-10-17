@@ -51,6 +51,8 @@ export class GoalController
 
 	protected async handleEnter (ctx: BotContext): Promise<void>
 	{
+		ctx.logger.info('Goal handleEnter');
+
 		ctx.session.state = GoalController.STATE;
 
 		ctx.session.goals = [];
@@ -73,16 +75,20 @@ export class GoalController
 			return;
 		}
 
+		ctx.logger.info('Goal handleMessage. Wait Answer: ' + ctx.session.waitAnswer);
+
 		const message = deunionize(ctx.message);
 		const text = message.text ?? '';
 
 		if (!text) {
+			ctx.logger.info('Text empty');
 			return;
 		}
 
 		if (ctx.session.waitAnswer === WaitAnswerEnum.WATCH_VIDEO) {
 			if (ctx.session.timeToWait > Date.now() || !/да/i.test(text)) {
-				return; // Игнорируем, клиент ещё смотрит видео
+				ctx.logger.info('Wait, ignore...');
+				return;
 			}
 
 			this.goalView.reply(ctx, 'MAIN_QUESTION');
@@ -95,6 +101,7 @@ export class GoalController
 
 			if (text.length > 255) {
 				this.goalView.reply(ctx, 'ERROR_VERY_LONG_GOAL');
+				ctx.logger.warn('Very long message');
 				return;
 			}
 
@@ -130,6 +137,7 @@ export class GoalController
 		if (ctx.session.waitAnswer === WaitAnswerEnum.TODAY_QUESTION) {
 			if (text.length > 255) {
 				this.goalView.reply(ctx, 'ERROR_VERY_LONG_GOAL');
+				ctx.logger.warn('Very long message');
 				return;
 			}
 
@@ -199,6 +207,8 @@ export class GoalController
 			return;
 		}
 
+		ctx.logger.info('Goal handleForget');
+
 		await this.goalService.forgetGoals(ctx.from.id);
 
 		this.goalView.forgotten(ctx);
@@ -209,6 +219,8 @@ export class GoalController
 		if (!ctx.from?.id) {
 			return;
 		}
+
+		ctx.logger.info('Goal handleNext');
 
 		const completedGoal = await this.goalService.completeGoal(ctx.from.id);
 

@@ -12,11 +12,11 @@ export class MainView
 	)
 	{}
 
-	public startMessage (
+	public async startMessage (
 		ctx: BotContext,
 		isAction: boolean = false,
 		goals: Goal[]
-	): void {
+	): Promise<void> {
 		let text = '';
 		let buttons = [];
 
@@ -48,9 +48,9 @@ export class MainView
 		const keyboard = Markup.inlineKeyboard([buttons]);
 
 		if (isAction) {
-			ctx.editMessageText(text, keyboard).catch(console.error);
+			await ctx.editMessageText(text, keyboard);
 		} else {
-			ctx.reply(text, keyboard).catch(console.error);
+			await ctx.reply(text, keyboard);
 		}
 	}
 

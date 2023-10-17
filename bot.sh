@@ -1,5 +1,3 @@
-/usr/bash
-
 # Update repository
 git checkout -- .
 git clean -fd

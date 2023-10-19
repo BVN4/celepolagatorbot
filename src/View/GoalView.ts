@@ -24,9 +24,9 @@ export class GoalView
 		);
 	}
 
-	public askYouWatched (ctx: BotContext): void
+	public async askYouWatched (ctx: BotContext): Promise<void>
 	{
-		ctx.reply(
+		await ctx.reply(
 			this.locale.get('YOU_WATCHED'),
 			Markup.keyboard([this.locale.get('YES_WATCHED')])
 				.oneTime()
@@ -34,29 +34,29 @@ export class GoalView
 		).catch(console.error);
 	}
 
-	public askQuestion (ctx: BotContext, index: number, target: string): void
+	public async askQuestion (ctx: BotContext, index: number, target: string): Promise<void>
 	{
-		ctx.reply(
+		await ctx.reply(
 			this.locale.prepare('QUESTION', {
 				timeName: GoalController.questions[index].name,
 				target: target
 			})
-		).catch(console.error);
+		);
 	}
 
-	public askTodayQuestion (userId: number, target: string): void
+	public async askTodayQuestion (userId: number, target: string): Promise<void>
 	{
-		this.bot.telegram.sendMessage(
+		await this.bot.telegram.sendMessage(
 			userId,
 			this.locale.prepare('TODAY_QUESTION', {
 				target: target
 			})
-		).catch(console.error);
+		);
 	}
 
-	public askResultQuestion (userId: number, target: string): void
+	public async askResultQuestion (userId: number, target: string): Promise<void>
 	{
-		this.bot.telegram.sendMessage(
+		await this.bot.telegram.sendMessage(
 			userId,
 			this.locale.prepare('RESULT_QUESTION', {
 				target: target
@@ -64,42 +64,41 @@ export class GoalView
 			Markup.keyboard([this.locale.get('YES_SUCCESS'), this.locale.get('NO_FAILED')])
 				.oneTime()
 				.resize()
-		).catch(console.error);
+		);
 	}
 
-	public forgotten (ctx: BotContext): void
+	public async forgotten (ctx: BotContext): Promise<void>
 	{
 		const text = this.locale.get('FORGOTTEN');
 		const keyboard = Markup.inlineKeyboard([
 			Markup.button.callback(this.locale.get(ButtonEnum.START), ButtonEnum.START)
 		]);
 
-		ctx.editMessageText(text, keyboard).catch(console.error);
+		await ctx.editMessageText(text, keyboard);
 	}
 
-	public reply (ctx: BotContext, text: string): void
+	public async reply (ctx: BotContext, text: string): Promise<void>
 	{
-		ctx.reply(this.locale.get(text))
-			.catch(console.error);
+		await ctx.reply(this.locale.get(text));
 	}
 
-	public congratulateComplete (ctx: BotContext, goalName: string): void
+	public async congratulateComplete (ctx: BotContext, goalName: string): Promise<void>
 	{
-		ctx.reply(
+		await ctx.reply(
 			this.locale.prepare('CONGRATULATE_COMPLETE', {
 				goal: goalName
 			}),
 			Markup.removeKeyboard()
-		).catch(console.error);
+		);
 	}
 
-	public noMoreGoals (ctx: BotContext): void
+	public async noMoreGoals (ctx: BotContext): Promise<void>
 	{
 		const text = this.locale.get('NO_MORE_GOALS');
 		const keyboard = Markup.inlineKeyboard([
 			Markup.button.callback(this.locale.get(ButtonEnum.START), ButtonEnum.START)
 		]);
 
-		ctx.reply(text, keyboard).catch(console.error);
+		await ctx.reply(text, keyboard);
 	}
 }

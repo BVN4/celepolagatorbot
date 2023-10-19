@@ -91,7 +91,7 @@ export class GoalController
 				return;
 			}
 
-			this.goalView.reply(ctx, 'MAIN_QUESTION');
+			await this.goalView.reply(ctx, 'MAIN_QUESTION');
 			ctx.session.waitAnswer = WaitAnswerEnum.REGISTRATION;
 			return;
 		}
@@ -100,7 +100,7 @@ export class GoalController
 			const index = ctx.session.goals.length;
 
 			if (text.length > 255) {
-				this.goalView.reply(ctx, 'ERROR_VERY_LONG_GOAL');
+				await this.goalView.reply(ctx, 'ERROR_VERY_LONG_GOAL');
 				ctx.logger.warn('Very long message');
 				return;
 			}
@@ -117,7 +117,7 @@ export class GoalController
 			});
 
 			if (ctx.session.goals.length <= GoalController.questions.length) {
-				this.goalView.askQuestion(ctx, index, text);
+				await this.goalView.askQuestion(ctx, index, text);
 				return;
 			}
 
@@ -129,21 +129,21 @@ export class GoalController
 
 			ctx.session.goals = [];
 
-			this.goalView.askTodayQuestion(user.id, lastGoalName);
+			await this.goalView.askTodayQuestion(user.id, lastGoalName);
 			ctx.session.waitAnswer = WaitAnswerEnum.TODAY_QUESTION;
 			return;
 		}
 
 		if (ctx.session.waitAnswer === WaitAnswerEnum.TODAY_QUESTION) {
 			if (text.length > 255) {
-				this.goalView.reply(ctx, 'ERROR_VERY_LONG_GOAL');
+				await this.goalView.reply(ctx, 'ERROR_VERY_LONG_GOAL');
 				ctx.logger.warn('Very long message');
 				return;
 			}
 
 			this.goalService.createGoal(ctx.from.id, text);
 
-			this.goalView.reply(ctx, 'GOAL_WAIT');
+			await this.goalView.reply(ctx, 'GOAL_WAIT');
 
 			ctx.session.waitAnswer = null;
 		}
@@ -151,17 +151,17 @@ export class GoalController
 		if (ctx.session.waitAnswer === WaitAnswerEnum.RESULT_QUESTION) {
 			if (/Да, удалось/iu.test(text)) {
 				await this.goalService.updateStatus(ctx.session.waitAnswerForGoal, GoalStatusEnum.SUCCESS);
-				this.goalView.reply(ctx, 'GOAL_SUCCESS');
+				await this.goalView.reply(ctx, 'GOAL_SUCCESS');
 			} else {
 				await this.goalService.updateStatus(ctx.session.waitAnswerForGoal, GoalStatusEnum.FAILED);
-				this.goalView.reply(ctx, 'GOAL_FAILED');
+				await this.goalView.reply(ctx, 'GOAL_FAILED');
 			}
 
 			ctx.session.waitAnswer = null;
 
 			const nextGoal = await this.goalService.getNextGoal(ctx.from.id);
 			if (nextGoal) {
-				this.goalView.askTodayQuestion(ctx.from.id, nextGoal.name);
+				await this.goalView.askTodayQuestion(ctx.from.id, nextGoal.name);
 				ctx.session.waitAnswer = WaitAnswerEnum.TODAY_QUESTION;
 			}
 		}
@@ -189,11 +189,11 @@ export class GoalController
 			session.state = GoalController.STATE;
 
 			if (goal.timestamp < now) {
-				this.goalView.askResultQuestion(user.id, goal.name);
+				await this.goalView.askResultQuestion(user.id, goal.name);
 				session.waitAnswer = WaitAnswerEnum.RESULT_QUESTION;
 				session.waitAnswerForGoal = goal.id;
 			} else {
-				this.goalView.askTodayQuestion(user.id, goal.name);
+				await this.goalView.askTodayQuestion(user.id, goal.name);
 				session.waitAnswer = WaitAnswerEnum.TODAY_QUESTION;
 			}
 
@@ -211,7 +211,7 @@ export class GoalController
 
 		await this.goalService.forgetGoals(ctx.from.id);
 
-		this.goalView.forgotten(ctx);
+		await this.goalView.forgotten(ctx);
 	}
 
 	protected async handleNext (ctx: BotContext): Promise<void>
@@ -225,16 +225,16 @@ export class GoalController
 		const completedGoal = await this.goalService.completeGoal(ctx.from.id);
 
 		if (completedGoal) {
-			this.goalView.congratulateComplete(ctx, completedGoal.name);
+			await this.goalView.congratulateComplete(ctx, completedGoal.name);
 		}
 
 		const nextGoal = await this.goalService.getNextGoal(ctx.from.id);
 
 		if (nextGoal) {
-			this.goalView.askTodayQuestion(ctx.from.id, nextGoal.name);
+			await this.goalView.askTodayQuestion(ctx.from.id, nextGoal.name);
 			ctx.session.waitAnswer = WaitAnswerEnum.TODAY_QUESTION;
 		} else {
-			this.goalView.noMoreGoals(ctx);
+			await this.goalView.noMoreGoals(ctx);
 		}
 	}
 }

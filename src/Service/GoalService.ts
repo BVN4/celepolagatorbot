@@ -49,7 +49,7 @@ export class GoalService
 		if (!user) {
 			user = new User();
 			user.id = userId;
-			this.userRepository.save(user).catch(console.error);
+			await this.userRepository.save(user);
 		}
 
 		return user;

@@ -3,12 +3,14 @@ import { ButtonEnum } from '../Enum/ButtonEnum';
 import { BotContext } from '../Service/BotService';
 import { MainView } from '../View/MainView';
 import { GoalService } from '../Service/GoalService';
+import { QuestService } from '../Service/QuestService';
 
 export class MainController
 {
 	public constructor (
 		protected bot: Telegraf<BotContext>,
 		protected goalService: GoalService,
+		protected questService: QuestService,
 		protected mainView: MainView
 	)
 	{}
@@ -25,18 +27,19 @@ export class MainController
 	{
 		ctx.logger.info('Main handleStart');
 
-		ctx.session.state = null;
-		ctx.session.waitAnswer = null;
+		delete ctx.session.state;
+		delete ctx.session.waitAnswer;
 
 		if (!ctx.from?.id) {
 			return;
 		}
 
-		const goals = await this.goalService.getGoalsByUser(ctx.from.id);
+		const nextGoal = await this.goalService.getNextGoal(ctx.from.id);
+		const nextQuest = await this.questService.getNextQuest(ctx.from.id);
 
 		ctx.logger.info('Send message');
 
-		await this.mainView.startMessage(ctx, isAction, goals);
+		await this.mainView.startMessage(ctx, isAction, nextGoal, nextQuest);
 
 		ctx.logger.info('Message sent');
 	}

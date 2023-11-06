@@ -1,38 +1,23 @@
-import { Goal } from '../Entity/Goal';
 import { deunionize, Telegraf } from 'telegraf';
 import { ButtonEnum } from '../Enum/ButtonEnum';
-import { Time } from '../Enum/Time';
-import { BotContext, BotService } from '../Service/BotService';
-import { message } from 'telegraf/filters';
-import cron from 'node-cron';
-import { GoalStatusEnum } from '../Enum/GoalStatusEnum';
+import { BotContext } from '../Service/BotService';
 import { GoalView } from '../View/GoalView';
 import { GoalService } from '../Service/GoalService';
-import { GoalTypeEnum } from '../Enum/GoalTypeEnum';
-import { CommandEnum } from '../Enum/CommandEnum';
 import { WaitAnswerEnum } from '../Enum/WaitAnswerEnum';
+import { GoalsDecMap } from '../ValueObject/GoalsDec';
+import { BotStateEnum } from '../Enum/BotStateEnum';
+import { UserService } from '../Service/UserService';
+import { CommandEnum } from '../Enum/CommandEnum';
 
 export class GoalController
 {
-	protected static readonly STATE = 'Goal';
-	protected static readonly TIME_TO_WATCH = 5 * Time.SECOND;
-
-	// TODO: Костыль. Пока не понятно, где они должны лежать,
-	//  потому пока тут, но по хорошему, тут их быть не должно
-	public static readonly questions = [
-		{ name: '5 лет', time: 5 * Time.YEAR },
-		{ name: '3 года', time: 3 * Time.YEAR },
-		{ name: '1 год', time: Time.YEAR },
-		{ name: '6 месяцев', time: 6 * Time.MONTH },
-		{ name: '3 месяца', time: 3 * Time.MONTH },
-		{ name: '1 месяц', time: Time.MONTH },
-		{ name: 'неделю', time: Time.WEEK }
-	];
+	protected readonly percents = [100, 75, 50, 25, 1];
+	protected readonly decompositionScript = [100, 50, 75, 25, 1];
 
 	public constructor (
 		protected bot: Telegraf<BotContext>,
-		protected botService: BotService,
 		protected goalService: GoalService,
+		protected userService: UserService,
 		protected goalView: GoalView
 	)
 	{}
@@ -42,40 +27,28 @@ export class GoalController
 		this.bot.action(ButtonEnum.NEW, (ctx) => this.handleEnter(ctx));
 		this.bot.action(ButtonEnum.FORGET_CONFIRM, (ctx) => this.handleForget(ctx));
 
-		this.bot.command(CommandEnum.NEXT, (ctx) => this.handleNext(ctx));
-
-		this.bot.on(message('text'), (ctx) => this.handleMessage(ctx));
-
-		cron.schedule('02 9 * * *', () => this.handleCron());
+		this.bot.command(CommandEnum.GOALS, (ctx) => this.handleShowGoalsDec(ctx));
 	}
 
 	protected async handleEnter (ctx: BotContext): Promise<void>
 	{
 		ctx.logger.info('Goal handleEnter');
 
-		ctx.session.state = GoalController.STATE;
+		ctx.session.state = BotStateEnum.GOAL;
+		ctx.session.waitAnswer = WaitAnswerEnum.REGISTRATION;
 
-		ctx.session.goals = [];
+		ctx.session.goalsDec = new GoalsDecMap();
 
-		ctx.session.waitAnswer = WaitAnswerEnum.WATCH_VIDEO;
-		ctx.session.timeToWait = Date.now() + GoalController.TIME_TO_WATCH;
-
-		await this.goalView.watchVideo(ctx);
-
-		setTimeout(() => {
-			if (ctx.session.waitAnswer === WaitAnswerEnum.WATCH_VIDEO) {
-				this.goalView.askYouWatched(ctx);
-			}
-		}, GoalController.TIME_TO_WATCH);
+		await this.goalView.reply(ctx, 'LETS_START');
+		await this.goalView.showPathToGoalPic(ctx);
+		await this.handleGoalsDec(ctx);
 	}
 
-	protected async handleMessage (ctx: BotContext): Promise<void>
+	public async handleMessage (ctx: BotContext): Promise<void>
 	{
-		if (!ctx.message || !ctx.from?.id || ctx.session.state !== GoalController.STATE) {
+		if (!ctx.message || !ctx.from?.id) {
 			return;
 		}
-
-		ctx.logger.info('Goal handleMessage. Wait Answer: ' + ctx.session.waitAnswer);
 
 		const message = deunionize(ctx.message);
 		const text = message.text ?? '';
@@ -85,119 +58,40 @@ export class GoalController
 			return;
 		}
 
-		if (ctx.session.waitAnswer === WaitAnswerEnum.WATCH_VIDEO) {
-			if (ctx.session.timeToWait > Date.now() || !/да/i.test(text)) {
-				ctx.logger.info('Wait, ignore...');
-				return;
-			}
-
-			await this.goalView.reply(ctx, 'MAIN_QUESTION');
-			ctx.session.waitAnswer = WaitAnswerEnum.REGISTRATION;
-			return;
-		}
-
 		if (ctx.session.waitAnswer === WaitAnswerEnum.REGISTRATION) {
-			const index = ctx.session.goals.length;
-
 			if (text.length > 255) {
 				await this.goalView.reply(ctx, 'ERROR_VERY_LONG_GOAL');
 				ctx.logger.warn('Very long message');
 				return;
 			}
 
-			ctx.session.goals.push({
-				name: text,
-				type: index ? GoalTypeEnum.PRIMARY : GoalTypeEnum.GLOBAL,
-				timestamp: index
-					// TODO: Костыль. Не понимаем временных рамок глобальной цели,
-					//  потому ставим максимальное, чтобы не ломать сортировки
-					? GoalController.questions[index - 1].time + Date.now()
-					: GoalController.questions[index].time + Date.now() + Time.YEAR,
-				userId: ctx.from.id
-			});
-
-			if (ctx.session.goals.length <= GoalController.questions.length) {
-				await this.goalView.askQuestion(ctx, index, text);
+			if (await this.handleGoalsDec(ctx, text)) {
 				return;
 			}
 
-			const user = await this.goalService.softCreateUser(ctx.from.id);
+			if (!ctx.session.goalsDec) {
+				ctx.logger.error('Empty goalsDec');
+				return;
+			}
 
-			await this.goalService.insertGoals(ctx.session.goals);
+			await this.userService.softCreateUser(ctx.from.id);
 
-			const lastGoalName = ctx.session.goals[ctx.session.goals.length - 1].name;
+			await this.goalService.insertGoals(ctx.session.goalsDec, ctx.from.id);
 
-			ctx.session.goals = [];
+			await this.goalView.showGoalsDec(
+				ctx,
+				ctx.session.goalsDec,
+				this.percents,
+				'GOAL_DEC_TITLE_FINAL',
+				'TODAY_QUESTION',
+				text
+			);
 
-			await this.goalView.askTodayQuestion(user.id, lastGoalName);
+			ctx.session.goalsDec = new GoalsDecMap();
+
 			ctx.session.waitAnswer = WaitAnswerEnum.TODAY_QUESTION;
+			ctx.session.state = BotStateEnum.QUEST;
 			return;
-		}
-
-		if (ctx.session.waitAnswer === WaitAnswerEnum.TODAY_QUESTION) {
-			if (text.length > 255) {
-				await this.goalView.reply(ctx, 'ERROR_VERY_LONG_GOAL');
-				ctx.logger.warn('Very long message');
-				return;
-			}
-
-			this.goalService.createGoal(ctx.from.id, text);
-
-			await this.goalView.reply(ctx, 'GOAL_WAIT');
-
-			ctx.session.waitAnswer = null;
-		}
-
-		if (ctx.session.waitAnswer === WaitAnswerEnum.RESULT_QUESTION) {
-			if (/Да, удалось/iu.test(text)) {
-				await this.goalService.updateStatus(ctx.session.waitAnswerForGoal, GoalStatusEnum.SUCCESS);
-				await this.goalView.reply(ctx, 'GOAL_SUCCESS');
-			} else {
-				await this.goalService.updateStatus(ctx.session.waitAnswerForGoal, GoalStatusEnum.FAILED);
-				await this.goalView.reply(ctx, 'GOAL_FAILED');
-			}
-
-			ctx.session.waitAnswer = null;
-
-			const nextGoal = await this.goalService.getNextGoal(ctx.from.id);
-			if (nextGoal) {
-				await this.goalView.askTodayQuestion(ctx.from.id, nextGoal.name);
-				ctx.session.waitAnswer = WaitAnswerEnum.TODAY_QUESTION;
-			}
-		}
-	}
-
-	protected async handleCron (): Promise<void>
-	{
-		const now = Date.now();
-
-		const users = await this.goalService.getGoalsGroupByUser();
-
-		for (const user of users) {
-			if (!user.goals || !user.goals.length) {
-				continue;
-			}
-
-			let session = this.botService.getSession(user.id);
-
-			if ([WaitAnswerEnum.RESULT_QUESTION, WaitAnswerEnum.TODAY_QUESTION].includes(session.waitAnswer)) {
-				continue; // Уже ждём ответа, не будем спамить
-			}
-
-			const goal = user.goals[0];
-
-			session.state = GoalController.STATE;
-
-			if (goal.timestamp < now) {
-				await this.goalView.askResultQuestion(user.id, goal.name);
-				session.waitAnswer = WaitAnswerEnum.RESULT_QUESTION;
-				session.waitAnswerForGoal = goal.id;
-			} else {
-				await this.goalView.askTodayQuestion(user.id, goal.name);
-				session.waitAnswer = WaitAnswerEnum.TODAY_QUESTION;
-			}
-
-			this.botService.setSession(user.id, session);
 		}
 	}
 
@@ -214,27 +108,83 @@ export class GoalController
 		await this.goalView.forgotten(ctx);
 	}
 
-	protected async handleNext (ctx: BotContext): Promise<void>
+	protected async handleShowGoalsDec (ctx: BotContext): Promise<void>
 	{
 		if (!ctx.from?.id) {
 			return;
 		}
 
-		ctx.logger.info('Goal handleNext');
+		ctx.logger.info('Goal handleShowGoalsDec');
 
-		const completedGoal = await this.goalService.completeGoal(ctx.from.id);
+		const goals = await this.goalService.getGoalsByUser(ctx.from.id);
 
-		if (completedGoal) {
-			await this.goalView.congratulateComplete(ctx, completedGoal.name);
+		const goalsDec = GoalsDecMap.fromEntities(goals);
+
+		await this.goalView.showGoalsDec(
+			ctx,
+			goalsDec,
+			this.percents.splice(0, this.percents.length - 1), // Вырезаем 1%
+			'GOAL_DEC_TITLE'
+		);
+	}
+
+	// protected async handleNext (ctx: BotContext): Promise<void>
+	// {
+	// 	if (!ctx.from?.id) {
+	// 		return;
+	// 	}
+	//
+	// 	ctx.logger.info('Goal handleNext');
+	//
+	// 	const completedGoal = await this.goalService.completeGoal(ctx.from.id);
+	//
+	// 	if (completedGoal) {
+	// 		await this.goalView.congratulateComplete(ctx, completedGoal.name);
+	// 	}
+	//
+	// 	const nextGoal = await this.goalService.getNextGoal(ctx.from.id);
+	//
+	// 	if (nextGoal) {
+	// 		await this.goalView.askTodayQuestion(ctx.from.id, nextGoal.name);
+	// 		ctx.session.waitAnswer = WaitAnswerEnum.TODAY_QUESTION;
+	// 	} else {
+	// 		await this.goalView.noMoreGoals(ctx);
+	// 	}
+	// }
+
+	protected async handleGoalsDec (ctx: BotContext, newGoal?: string): Promise<boolean> {
+		if (!ctx.session.goalsDec) {
+			ctx.session.goalsDec = new GoalsDecMap();
 		}
 
-		const nextGoal = await this.goalService.getNextGoal(ctx.from.id);
+		const index = ctx.session.goalsDec.size - 1;
 
-		if (nextGoal) {
-			await this.goalView.askTodayQuestion(ctx.from.id, nextGoal.name);
-			ctx.session.waitAnswer = WaitAnswerEnum.TODAY_QUESTION;
-		} else {
-			await this.goalView.noMoreGoals(ctx);
+		const percent = this.decompositionScript[index];
+		const nextPercent = this.decompositionScript[index + 1];
+
+		ctx.logger.info(index);
+		ctx.logger.info(percent, nextPercent);
+
+		if (percent && newGoal) {
+			ctx.session.goalsDec.set(percent, newGoal);
 		}
+
+		if (!this.decompositionScript[index + 2]) {
+			return false;
+		}
+
+		ctx.session.goalsDec.set(nextPercent, null);
+
+		await this.goalView.showGoalsDec(
+			ctx,
+			ctx.session.goalsDec,
+			this.percents,
+			'GOAL_DEC_TITLE_' + (index + 1),
+			index === -1 ? 'MAIN_QUESTION' : 'QUESTION',
+			ctx.session.goalsDec.get(100) ?? '',
+			String(nextPercent)
+		);
+
+		return true;
 	}
 }

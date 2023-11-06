@@ -1,62 +1,43 @@
 import { Repository } from 'typeorm/repository/Repository';
 import { Goal } from '../Entity/Goal';
-import { User } from '../Entity/User';
-import { GoalStatusEnum } from '../Enum/GoalStatusEnum';
-import { Not, UpdateResult } from 'typeorm';
+import { PointStatusEnum } from '../Enum/PointStatusEnum';
+import { UpdateResult } from 'typeorm';
 import { GoalTypeEnum } from '../Enum/GoalTypeEnum';
+import { GoalsDecMap } from '../ValueObject/GoalsDec';
 
 export class GoalService
 {
 	public constructor (
-		protected goalRepository: Repository<Goal>,
-		protected userRepository: Repository<User>
+		protected goalRepository: Repository<Goal>
 	)
 	{}
-
-	public async getGoalsGroupByUser (): Promise<User[]>
-	{
-		return await this.userRepository.find({
-			relations: ['goals'],
-			where: {
-				goals: {
-					status: GoalStatusEnum.WAIT,
-					timestamp: Not(0)
-				}
-			},
-			order: {
-				goals: {
-					timestamp: 'ASC'
-				}
-			}
-		});
-	};
 
 	public async forgetGoals (userId: number): Promise<UpdateResult>
 	{
 		return await this.goalRepository
 			.createQueryBuilder()
 			.update()
-			.set({ status: GoalStatusEnum.FORGOTTEN })
+			.set({ status: PointStatusEnum.FORGOTTEN })
 			.where({ userId: userId })
 			.execute();
 	}
 
-	// TODO: На самом деле, мы не должны создавать User в GoalService
-	public async softCreateUser (userId: number): Promise<User>
+	public async insertGoals (goalsDec: GoalsDecMap, userId: number): Promise<void>
 	{
-		let user = await this.userRepository.findOneBy({ id: userId });
+		let goals: any[] = [];
 
-		if (!user) {
-			user = new User();
-			user.id = userId;
-			await this.userRepository.save(user);
-		}
+		goalsDec.forEach((goal, percent) => {
+			if (!goal) {
+				return;
+			}
 
-		return user;
-	}
+			goals.push({
+				name: goal,
+				percent: percent,
+				userId: userId
+			});
+		});
 
-	public async insertGoals (goals: Goal[]): Promise<void>
-	{
 		await this.goalRepository.createQueryBuilder()
 			.insert()
 			.values(goals)
@@ -69,29 +50,20 @@ export class GoalService
 
 		goal.name = text;
 		goal.userId = userId;
-		goal.type = type;
-		goal.timestamp = Date.now();
 
 		this.goalRepository.save(goal)
 			.catch(console.error);
-	}
-
-	public async updateStatus (goalId: number, status: GoalStatusEnum): Promise<void>
-	{
-		await this.goalRepository.update(goalId, {
-			status: status
-		});
 	}
 
 	public async getNextGoal (userId: number): Promise<Goal | null>
 	{
 		return await this.goalRepository.findOne({
 			where: {
-				status: GoalStatusEnum.WAIT,
+				status: PointStatusEnum.WAIT,
 				userId: userId
 			},
 			order: {
-				timestamp: 'ASC'
+				percent: 'ASC'
 			}
 		});
 	}
@@ -100,11 +72,11 @@ export class GoalService
 	{
 		return await this.goalRepository.find({
 			where: {
-				status: GoalStatusEnum.WAIT,
+				status: PointStatusEnum.WAIT,
 				userId: userId
 			},
 			order: {
-				timestamp: 'ASC'
+				percent: 'ASC'
 			}
 		});
 	}
@@ -112,17 +84,16 @@ export class GoalService
 	public async completeGoal (userId: number): Promise<Goal | null>
 	{
 		await this.goalRepository.update({
-			status: GoalStatusEnum.WAIT,
-			type: GoalTypeEnum.TODAY,
+			status: PointStatusEnum.WAIT,
 			userId: userId
 		}, {
-			status: GoalStatusEnum.SUCCESS
+			status: PointStatusEnum.SUCCESS
 		});
 
 		let nextGoal = await this.getNextGoal(userId);
 
 		if (nextGoal) {
-			nextGoal.status = GoalStatusEnum.SUCCESS;
+			nextGoal.status = PointStatusEnum.SUCCESS;
 			await this.goalRepository.save(nextGoal);
 		}
 

@@ -7,6 +7,7 @@ import { Config } from './Config/Config';
 import { Goal } from './Entity/Goal';
 import { User } from './Entity/User';
 import { System } from './System/System';
+import { Quest } from './Entity/Quest';
 
 export class DB
 {
@@ -14,6 +15,7 @@ export class DB
 
 	public static readonly entities = [
 		Goal,
+		Quest,
 		User
 	];
 

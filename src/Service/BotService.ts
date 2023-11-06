@@ -1,9 +1,17 @@
 import { Context, session, SessionStore, Telegraf } from 'telegraf';
-import { CommandEnum } from '../Enum/CommandEnum';
 import { Logger } from '../System/Logger';
+import { BotStateEnum } from '../Enum/BotStateEnum';
+import { GoalsDecMap } from '../ValueObject/GoalsDec';
+import { WaitAnswerEnum } from '../Enum/WaitAnswerEnum';
+import { CommandEnum } from '../Enum/CommandEnum';
 
 export interface BotSession
 {
+	state?: BotStateEnum,
+	waitAnswer?: WaitAnswerEnum,
+
+	goalsDec?: GoalsDecMap,
+
 	[key: string]: any;
 }
 
@@ -50,12 +58,14 @@ export class BotService
 	{
 		this.telegraf.telegram.setMyCommands([
 			{
-				command: 'start',
-				description: 'Start message'
-			},
-			{
-				command: CommandEnum.NEXT,
-				description: 'Greetings command'
+				command: CommandEnum.START,
+				description: 'Вывести стартовое меню'
+			}, {
+				command: CommandEnum.GOALS,
+				description: 'Напомнить декомпозицию'
+			}, {
+				command: CommandEnum.DONE,
+				description: 'Пометить сегодняшнюю цель выполненной'
 			}
 		]).catch(console.error);
 	}

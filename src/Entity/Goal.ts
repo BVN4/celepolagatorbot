@@ -1,28 +1,12 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, ManyToOne } from 'typeorm';
 import { User } from './User';
-import { GoalStatusEnum } from '../Enum/GoalStatusEnum';
-import { GoalTypeEnum } from '../Enum/GoalTypeEnum';
+import { Point } from './Point';
 
 @Entity({ name: 'goals' })
-export class Goal
+export class Goal extends Point
 {
-	@PrimaryGeneratedColumn()
-	id!: number;
-
-	@Column()
-	name!: string;
-
-	@Column({ type: 'tinyint', default: GoalStatusEnum.WAIT })
-	status: GoalStatusEnum = GoalStatusEnum.WAIT;
-
-	@Column({ type: 'tinyint', default: GoalTypeEnum.TODAY })
-	type: GoalTypeEnum = GoalTypeEnum.TODAY;
-
-	@Column({ type: 'bigint', unsigned: true, default: 0 })
-	timestamp: number = 0;
-
-	@Column({ type: 'bigint', unsigned: true })
-	userId!: number;
+	@Column({ type: 'int', unsigned: true, default: 0 })
+	percent: number = 0;
 
 	@ManyToOne(() => User, (user) => user.goals)
 	user!: User;

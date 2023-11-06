@@ -8,6 +8,10 @@ import { BotContext, BotService } from '../Service/BotService';
 import { GoalService } from '../Service/GoalService';
 import { GoalView } from '../View/GoalView';
 import { MainView } from '../View/MainView';
+import { QuestService } from '../Service/QuestService';
+import { UserService } from '../Service/UserService';
+import { QuestController } from './QuestController';
+import { QuestView } from '../View/QuestView';
 
 /**
  * Контроллеры - Application Layer или Controller из MVC.
@@ -20,6 +24,7 @@ export class ControllerFactory extends Factory
 	{
 		this.map.set(MainController, () => this.makeMainController());
 		this.map.set(GoalController, () => this.makeGoalController());
+		this.map.set(QuestController, () => this.makeQuestController());
 
 		return this.map;
 	}
@@ -29,6 +34,7 @@ export class ControllerFactory extends Factory
 		return new MainController(
 			System.get(Telegraf<BotContext>),
 			System.get(GoalService),
+			System.get(QuestService),
 			System.get(MainView)
 		);
 	}
@@ -37,9 +43,21 @@ export class ControllerFactory extends Factory
 	{
 		return new GoalController(
 			System.get(Telegraf<BotContext>),
+			System.get(GoalService),
+			System.get(UserService),
+			System.get(GoalView)
+		);
+	}
+
+	protected makeQuestController (): QuestController
+	{
+		return new QuestController(
+			System.get(Telegraf<BotContext>),
 			System.get(BotService),
 			System.get(GoalService),
-			System.get(GoalView)
+			System.get(QuestService),
+			System.get(UserService),
+			System.get(QuestView)
 		);
 	}
 }

@@ -1,4 +1,6 @@
 export enum CommandEnum
 {
-	NEXT = 'next'
+	START = 'start',
+	GOALS = 'goals',
+	DONE = 'done'
 }

@@ -1,70 +1,54 @@
-import { Markup, Telegraf } from 'telegraf';
+import { Markup } from 'telegraf';
 import { ButtonEnum } from '../Enum/ButtonEnum';
 import { BotContext } from '../Service/BotService';
-import { Locale } from '../Locale/Locale';
-import { GoalController } from '../Controller/GoalController';
+import { cwd } from 'node:process';
+import { GoalsDecMap } from '../ValueObject/GoalsDec';
+import { View } from './View';
 
-export class GoalView
+export class GoalView extends View
 {
-	protected static readonly VIDEO_URL = 'https://youtu.be/0IgDIxow7T4?si=X85FmazZYqrkrTl4';
-
-	public constructor (
-		protected bot: Telegraf<BotContext>,
-		protected locale: Locale
-	)
-	{}
-
-	public async watchVideo (ctx: BotContext): Promise<void>
+	public async showPathToGoalPic (ctx: BotContext): Promise<void>
 	{
-		await ctx.editMessageText(
-			this.locale.get('WATCH_VIDEO'),
-			Markup.inlineKeyboard([
-				Markup.button.url(this.locale.get(ButtonEnum.VIDEO_URL), GoalView.VIDEO_URL)
-			])
-		);
+		await ctx.replyWithPhoto({
+			source: cwd() + '/assets/path_to_goal.jpg'
+		}, {
+			caption: this.locale.get('PATH_TO_GOAL_PIC')
+		});
 	}
 
-	public async askYouWatched (ctx: BotContext): Promise<void>
-	{
-		await ctx.reply(
-			this.locale.get('YOU_WATCHED'),
-			Markup.keyboard([this.locale.get('YES_WATCHED')])
-				.oneTime()
-				.resize()
-		).catch(console.error);
-	}
+	public async showGoalsDec (
+		ctx: BotContext,
+		goalsDec: GoalsDecMap,
+		percents: number[],
+		title: string = '',
+		question: string = '',
+		target: string = '',
+		percent: string = ''
+	): Promise<void> {
+		let text = '';
 
-	public async askQuestion (ctx: BotContext, index: number, target: string): Promise<void>
-	{
-		await ctx.reply(
-			this.locale.prepare('QUESTION', {
-				timeName: GoalController.questions[index].name,
-				target: target
-			})
-		);
-	}
+		if (title) {
+			text += this.locale.get(title) + '\n\n';
+		}
 
-	public async askTodayQuestion (userId: number, target: string): Promise<void>
-	{
-		await this.bot.telegram.sendMessage(
-			userId,
-			this.locale.prepare('TODAY_QUESTION', {
-				target: target
-			})
-		);
-	}
+		for (const percent of percents) {
+			let goal = goalsDec.get(percent);
 
-	public async askResultQuestion (userId: number, target: string): Promise<void>
-	{
-		await this.bot.telegram.sendMessage(
-			userId,
-			this.locale.prepare('RESULT_QUESTION', {
-				target: target
-			}),
-			Markup.keyboard([this.locale.get('YES_SUCCESS'), this.locale.get('NO_FAILED')])
-				.oneTime()
-				.resize()
-		);
+			if (!goal) {
+				goal = goal === null ? '???' : '';
+			}
+
+			text += percent + '% - ' + goal + '\n';
+		}
+
+		if (question) {
+			text += '\n' + this.locale.prepare(question, {
+				target: target,
+				percent: percent
+			});
+		}
+
+		await ctx.reply(text);
 	}
 
 	public async forgotten (ctx: BotContext): Promise<void>
@@ -75,11 +59,6 @@ export class GoalView
 		]);
 
 		await ctx.editMessageText(text, keyboard);
-	}
-
-	public async reply (ctx: BotContext, text: string): Promise<void>
-	{
-		await ctx.reply(this.locale.get(text));
 	}
 
 	public async congratulateComplete (ctx: BotContext, goalName: string): Promise<void>

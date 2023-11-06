@@ -7,6 +7,9 @@ import { GoalService } from './GoalService';
 import { DB } from '../DB';
 import { Goal } from '../Entity/Goal';
 import { User } from '../Entity/User';
+import { UserService } from './UserService';
+import { QuestService } from './QuestService';
+import { Quest } from '../Entity/Quest';
 
 /**
  * Сервис - Domain Layer.
@@ -19,6 +22,8 @@ export class ServiceFactory extends Factory
 	{
 		this.map.set(BotService, () => this.makeBotService());
 		this.map.set(GoalService, () => this.makeGoalService());
+		this.map.set(QuestService, () => this.makeQuestService());
+		this.map.set(UserService, () => this.makeUserService());
 
 		return this.map;
 	}
@@ -33,7 +38,20 @@ export class ServiceFactory extends Factory
 	protected makeGoalService (): GoalService
 	{
 		return new GoalService(
-			DB.getRepository(Goal),
+			DB.getRepository(Goal)
+		);
+	}
+
+	protected makeQuestService (): QuestService
+	{
+		return new QuestService(
+			DB.getRepository(Quest)
+		);
+	}
+
+	protected makeUserService (): UserService
+	{
+		return new UserService(
 			DB.getRepository(User)
 		);
 	}

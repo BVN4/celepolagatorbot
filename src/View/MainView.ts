@@ -1,44 +1,32 @@
 import { Markup } from 'telegraf';
 import { BotContext } from '../Service/BotService';
-import { Locale } from '../Locale/Locale';
 import { Goal } from '../Entity/Goal';
 import { ButtonEnum } from '../Enum/ButtonEnum';
-import { GoalTypeEnum } from '../Enum/GoalTypeEnum';
+import { Quest } from '../Entity/Quest';
+import { View } from './View';
 
-export class MainView
+export class MainView extends View
 {
-	public constructor (
-		protected locale: Locale
-	)
-	{}
-
 	public async startMessage (
 		ctx: BotContext,
 		isAction: boolean = false,
-		goals: Goal[]
+		nextGoal: Goal | null,
+		nextQuest: Quest | null
 	): Promise<void> {
-		let text = '';
+		let text = this.locale.get('START') + '\n\n';
 		let buttons = [];
 
-		if (goals.length) {
-			let mainGoal: Goal | null = null;
-			let target: Goal | null = null;
-
-			for (const goal of goals) {
-				if (goal.type === GoalTypeEnum.GLOBAL) {
-					mainGoal = goal;
-					continue;
-				}
-				if (!target || target.timestamp > goal.timestamp) {
-					target = goal;
-				}
-			}
-
-			text = this.locale.get('START') + '\n\n';
+		if (nextGoal) {
 			text += this.locale.prepare('YOU_MOVING_TOWARDS_GOAL', {
-				goal: mainGoal?.name ?? '',
-				target: target?.name ?? ''
+				goal: nextGoal?.name ?? '',
+				target: nextQuest?.name ?? ''
 			});
+			text += this.locale.get('START_NEW');
+			text += this.locale.get('START_MENU');
+			text += this.locale.get('START_COMMAND_GOALS');
+			if (nextQuest) {
+				text += this.locale.get('START_COMMAND_DONE');
+			}
 			buttons.push(Markup.button.callback(this.locale.get(ButtonEnum.FORGET_GOAL), ButtonEnum.FORGET_GOAL));
 		} else {
 			text = this.locale.get('START');

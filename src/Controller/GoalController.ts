@@ -11,7 +11,7 @@ import { CommandEnum } from '../Enum/CommandEnum';
 
 export class GoalController
 {
-	protected readonly percentsDec = [100, 75, 50, 25, 1];
+	protected readonly percentsDec = [100, 75, 50, 25];
 	protected readonly percentsDecRegister = [100, 75, 50, 25, 1];
 	protected readonly decompositionScript = [100, 50, 75, 25, 1];
 

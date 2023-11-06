@@ -24,7 +24,7 @@ export class QuestController
 
 	public init ()
 	{
-		cron.schedule('*/10 * * * *', () => this.handleCron());
+		cron.schedule('02 9 * * *', () => this.handleCron());
 
 		this.bot.command(CommandEnum.DONE, (ctx) => this.handleDoneQuest(ctx));
 	}

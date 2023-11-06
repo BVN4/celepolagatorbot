@@ -21,7 +21,6 @@ export class MainView extends View
 				goal: nextGoal?.name ?? '',
 				target: nextQuest?.name ?? ''
 			});
-			text += this.locale.get('START_NEW');
 			text += this.locale.get('START_MENU');
 			text += this.locale.get('START_COMMAND_GOALS');
 			if (nextQuest) {

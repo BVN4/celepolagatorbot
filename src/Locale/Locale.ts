@@ -1,16 +1,16 @@
 import ru from '../../locales/ru.json';
 
-interface LocaleLangMap
+export interface LocaleLangMap
 {
 	[lang: string]: LocaleTexts;
 }
 
-interface LocaleTexts
+export interface LocaleTexts
 {
 	[key: string]: string;
 }
 
-interface ValueToPrepare
+export interface ValueToPrepare
 {
 	[key: string]: string;
 }

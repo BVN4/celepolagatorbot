@@ -52,7 +52,9 @@ export class QuestController
 
 			await this.questService.createTodayQuest(ctx.from.id, text);
 
-			await this.questView.reply(ctx, 'QUEST_CREATED');
+			await this.questView.prepareReply(ctx, 'QUEST_CREATED', {
+				target: text
+			});
 
 			delete ctx.session.waitAnswer;
 			return;
@@ -69,9 +71,11 @@ export class QuestController
 					await this.questView.askTodayQuestion(ctx.from.id, nextGoal.name, 'QUEST_SUCCESS');
 					ctx.session.waitAnswer = WaitAnswerEnum.TODAY_QUESTION;
 				}
-			} else {
+			} else if (/Нет, не удалось/iu.test(text)) {
 				await this.questView.askWhatsNextQuestion(ctx);
 				ctx.session.waitAnswer = WaitAnswerEnum.WHATS_NEXT;
+			} else {
+				await this.questView.notUnderstand(ctx);
 			}
 			return;
 		}
@@ -81,13 +85,15 @@ export class QuestController
 
 			if (/Оставить/iu.test(text)) {
 				await this.questView.reply(ctx, 'QUEST_AGAIN_CREATE');
-			} else {
+			} else if (/Установить новую/iu.test(text)) {
 				await this.questService.updateStatus(ctx.session.waitAnswerForQuest, PointStatusEnum.FAILED);
 				const nextGoal = await this.goalService.getNextGoal(ctx.from.id);
 				if (nextGoal) {
 					await this.questView.askTodayQuestion(ctx.from.id, nextGoal.name, 'QUEST_RENEW');
 					ctx.session.waitAnswer = WaitAnswerEnum.TODAY_QUESTION;
 				}
+			} else {
+				await this.questView.notUnderstand(ctx);
 			}
 			return;
 		}

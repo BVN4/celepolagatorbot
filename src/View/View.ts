@@ -1,6 +1,6 @@
 import { BotContext } from '../Service/BotService';
 import { Markup, Telegraf } from 'telegraf';
-import { Locale } from '../Locale/Locale';
+import { Locale, ValueToPrepare } from '../Locale/Locale';
 
 export class View
 {
@@ -16,5 +16,18 @@ export class View
 			this.locale.get(text),
 			Markup.removeKeyboard()
 		);
+	}
+
+	public async prepareReply (ctx: BotContext, text: string, values: ValueToPrepare = {}): Promise<void>
+	{
+		await ctx.reply(
+			this.locale.prepare(text, values),
+			Markup.removeKeyboard()
+		);
+	}
+
+	public async notUnderstand (ctx: BotContext): Promise<void>
+	{
+		await ctx.reply(this.locale.get('NOT_UNDERSTAND'));
 	}
 }

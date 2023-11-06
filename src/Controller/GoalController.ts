@@ -11,7 +11,8 @@ import { CommandEnum } from '../Enum/CommandEnum';
 
 export class GoalController
 {
-	protected readonly percents = [100, 75, 50, 25, 1];
+	protected readonly percentsDec = [100, 75, 50, 25, 1];
+	protected readonly percentsDecRegister = [100, 75, 50, 25, 1];
 	protected readonly decompositionScript = [100, 50, 75, 25, 1];
 
 	public constructor (
@@ -81,7 +82,7 @@ export class GoalController
 			await this.goalView.showGoalsDec(
 				ctx,
 				ctx.session.goalsDec,
-				this.percents,
+				this.percentsDecRegister,
 				'GOAL_DEC_TITLE_FINAL',
 				'TODAY_QUESTION',
 				text
@@ -123,34 +124,10 @@ export class GoalController
 		await this.goalView.showGoalsDec(
 			ctx,
 			goalsDec,
-			this.percents.splice(0, this.percents.length - 1), // Вырезаем 1%
+			this.percentsDecRegister,
 			'GOAL_DEC_TITLE'
 		);
 	}
-
-	// protected async handleNext (ctx: BotContext): Promise<void>
-	// {
-	// 	if (!ctx.from?.id) {
-	// 		return;
-	// 	}
-	//
-	// 	ctx.logger.info('Goal handleNext');
-	//
-	// 	const completedGoal = await this.goalService.completeGoal(ctx.from.id);
-	//
-	// 	if (completedGoal) {
-	// 		await this.goalView.congratulateComplete(ctx, completedGoal.name);
-	// 	}
-	//
-	// 	const nextGoal = await this.goalService.getNextGoal(ctx.from.id);
-	//
-	// 	if (nextGoal) {
-	// 		await this.goalView.askTodayQuestion(ctx.from.id, nextGoal.name);
-	// 		ctx.session.waitAnswer = WaitAnswerEnum.TODAY_QUESTION;
-	// 	} else {
-	// 		await this.goalView.noMoreGoals(ctx);
-	// 	}
-	// }
 
 	protected async handleGoalsDec (ctx: BotContext, newGoal?: string): Promise<boolean> {
 		if (!ctx.session.goalsDec) {
@@ -178,7 +155,7 @@ export class GoalController
 		await this.goalView.showGoalsDec(
 			ctx,
 			ctx.session.goalsDec,
-			this.percents,
+			this.percentsDec,
 			'GOAL_DEC_TITLE_' + (index + 1),
 			index === -1 ? 'MAIN_QUESTION' : 'QUESTION',
 			ctx.session.goalsDec.get(100) ?? '',

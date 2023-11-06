@@ -124,7 +124,7 @@ export class GoalController
 		await this.goalView.showGoalsDec(
 			ctx,
 			goalsDec,
-			this.percentsDecRegister,
+			this.percentsDec,
 			'GOAL_DEC_TITLE'
 		);
 	}
@@ -155,7 +155,7 @@ export class GoalController
 		await this.goalView.showGoalsDec(
 			ctx,
 			ctx.session.goalsDec,
-			this.percentsDec,
+			this.percentsDecRegister,
 			'GOAL_DEC_TITLE_' + (index + 1),
 			index === -1 ? 'MAIN_QUESTION' : 'QUESTION',
 			ctx.session.goalsDec.get(100) ?? '',

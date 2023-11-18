@@ -25,6 +25,7 @@ export class MainView extends View
 			text += this.locale.get('START_COMMAND_GOALS');
 			if (nextQuest) {
 				text += this.locale.get('START_COMMAND_DONE');
+				text += this.locale.get('START_COMMAND_MOVE');
 			}
 			buttons.push(Markup.button.callback(this.locale.get(ButtonEnum.FORGET_GOAL), ButtonEnum.FORGET_GOAL));
 		} else {

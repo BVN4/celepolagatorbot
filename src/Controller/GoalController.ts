@@ -43,6 +43,10 @@ export class GoalController
 
 		ctx.session.goalsDec = new GoalsDecMap();
 
+		if (ctx.callbackQuery?.from.id) {
+			await this.goalService.forgetGoals(ctx.callbackQuery.from.id);
+		}
+
 		await this.goalView.reply(ctx, 'LETS_START');
 		await this.goalView.showPathToGoalPic(ctx);
 		await this.handleGoalsDec(ctx);
@@ -144,9 +148,6 @@ export class GoalController
 		const percent = this.decompositionScript[index];
 		const nextPercent = this.decompositionScript[index + 1];
 		const needGoal = this.decompositionScript[index + 2];
-
-		ctx.logger.info(index);
-		ctx.logger.info(percent, nextPercent);
 
 		if (percent && newGoal) {
 			const goal = new Goal();

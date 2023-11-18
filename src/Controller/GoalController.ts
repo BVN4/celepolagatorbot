@@ -10,6 +10,7 @@ import { UserService } from '../Service/UserService';
 import { CommandEnum } from '../Enum/CommandEnum';
 import { PointStatusEnum } from '../Enum/PointStatusEnum';
 import { Goal } from '../Entity/Goal';
+import { QuestService } from '../Service/QuestService';
 
 export class GoalController
 {
@@ -20,6 +21,7 @@ export class GoalController
 	public constructor (
 		protected bot: Telegraf<BotContext>,
 		protected goalService: GoalService,
+		protected questService: QuestService,
 		protected userService: UserService,
 		protected goalView: GoalView
 	)
@@ -45,6 +47,7 @@ export class GoalController
 
 		if (ctx.callbackQuery?.from.id) {
 			await this.goalService.forgetGoals(ctx.callbackQuery.from.id);
+			await this.questService.forgetQuests(ctx.callbackQuery.from.id);
 		}
 
 		await this.goalView.reply(ctx, 'LETS_START');
@@ -114,6 +117,7 @@ export class GoalController
 		ctx.logger.info('Goal handleForget');
 
 		await this.goalService.forgetGoals(ctx.from.id);
+		await this.questService.forgetQuests(ctx.from.id);
 
 		await this.goalView.forgotten(ctx);
 	}

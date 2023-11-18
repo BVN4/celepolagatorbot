@@ -1,6 +1,7 @@
 import { Repository } from 'typeorm/repository/Repository';
 import { Quest } from '../Entity/Quest';
 import { PointStatusEnum } from '../Enum/PointStatusEnum';
+import { UpdateResult } from 'typeorm';
 
 export class QuestService
 {
@@ -8,6 +9,15 @@ export class QuestService
 		protected questRepository: Repository<Quest>
 	)
 	{}
+
+	public async forgetQuests (userId: number): Promise<UpdateResult>
+	{
+		return await this.questRepository
+			.createQueryBuilder()
+			.softDelete()
+			.where({ userId: userId })
+			.execute();
+	}
 
 	public async getNextQuest (userId: number): Promise<Quest | null>
 	{

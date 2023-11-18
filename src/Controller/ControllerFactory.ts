@@ -44,6 +44,7 @@ export class ControllerFactory extends Factory
 		return new GoalController(
 			System.get(Telegraf<BotContext>),
 			System.get(GoalService),
+			System.get(QuestService),
 			System.get(UserService),
 			System.get(GoalView)
 		);

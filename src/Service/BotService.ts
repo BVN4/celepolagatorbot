@@ -66,6 +66,9 @@ export class BotService
 			}, {
 				command: CommandEnum.DONE,
 				description: 'Пометить сегодняшнюю цель выполненной'
+			}, {
+				command: CommandEnum.MOVE,
+				description: 'Пометить подцель выполненной'
 			}
 		]).catch(console.error);
 	}

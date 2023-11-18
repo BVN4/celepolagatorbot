@@ -1,8 +1,7 @@
 import { Repository } from 'typeorm/repository/Repository';
 import { Goal } from '../Entity/Goal';
 import { PointStatusEnum } from '../Enum/PointStatusEnum';
-import { UpdateResult } from 'typeorm';
-import { GoalTypeEnum } from '../Enum/GoalTypeEnum';
+import { In, UpdateResult } from 'typeorm';
 import { GoalsDecMap } from '../ValueObject/GoalsDec';
 
 export class GoalService
@@ -16,8 +15,7 @@ export class GoalService
 	{
 		return await this.goalRepository
 			.createQueryBuilder()
-			.update()
-			.set({ status: PointStatusEnum.FORGOTTEN })
+			.softDelete()
 			.where({ userId: userId })
 			.execute();
 	}
@@ -32,9 +30,10 @@ export class GoalService
 			}
 
 			goals.push({
-				name: goal,
+				name: goal.name,
 				percent: percent,
-				userId: userId
+				userId: userId,
+				status: goal.status ?? PointStatusEnum.WAIT
 			});
 		});
 
@@ -42,17 +41,6 @@ export class GoalService
 			.insert()
 			.values(goals)
 			.execute();
-	}
-
-	public createGoal (userId: number, text: string, type: GoalTypeEnum = GoalTypeEnum.TODAY): void
-	{
-		let goal = this.goalRepository.create();
-
-		goal.name = text;
-		goal.userId = userId;
-
-		this.goalRepository.save(goal)
-			.catch(console.error);
 	}
 
 	public async getNextGoal (userId: number): Promise<Goal | null>
@@ -68,35 +56,46 @@ export class GoalService
 		});
 	}
 
-	public async getGoalsByUser (userId: number): Promise<Goal[]>
+	public async getGoalsByUser (userId: number, limit?: number): Promise<Goal[]>
 	{
 		return await this.goalRepository.find({
 			where: {
-				status: PointStatusEnum.WAIT,
 				userId: userId
+			},
+			order: {
+				percent: 'ASC'
+			},
+			take: limit
+		});
+	}
+
+	public async moveToNextGoal (userId: number): Promise<{ oldGoal: Goal | null, newGoal: Goal | null }>
+	{
+		const goals = await this.goalRepository.find({
+			where: {
+				userId: userId,
+				status: In([PointStatusEnum.WORK, PointStatusEnum.WAIT])
 			},
 			order: {
 				percent: 'ASC'
 			}
 		});
-	}
 
-	public async completeGoal (userId: number): Promise<Goal | null>
-	{
-		await this.goalRepository.update({
-			status: PointStatusEnum.WAIT,
-			userId: userId
-		}, {
-			status: PointStatusEnum.SUCCESS
-		});
+		const result = {
+			oldGoal: goals[0] ?? null,
+			newGoal: goals[1] ?? null
+		};
 
-		let nextGoal = await this.getNextGoal(userId);
-
-		if (nextGoal) {
-			nextGoal.status = PointStatusEnum.SUCCESS;
-			await this.goalRepository.save(nextGoal);
+		if (result.oldGoal) {
+			result.oldGoal.status = PointStatusEnum.SUCCESS;
+			await this.goalRepository.save(result.oldGoal);
 		}
 
-		return nextGoal;
+		if (result.newGoal) {
+			result.newGoal.status = PointStatusEnum.WORK;
+			await this.goalRepository.save(result.newGoal);
+		}
+
+		return result;
 	}
 }

@@ -4,6 +4,8 @@ import { BotContext } from '../Service/BotService';
 import { cwd } from 'node:process';
 import { GoalsDecMap } from '../ValueObject/GoalsDec';
 import { View } from './View';
+import { PointStatusEnum } from '../Enum/PointStatusEnum';
+import { PointStatusToEmojiMap } from '../Enum/PointStatusToEmojiMap';
 
 export class GoalView extends View
 {
@@ -23,7 +25,8 @@ export class GoalView extends View
 		title: string = '',
 		question: string = '',
 		target: string = '',
-		percent: string = ''
+		percent: string = '',
+		showStatus: boolean = true,
 	): Promise<void> {
 		let text = '';
 
@@ -33,12 +36,19 @@ export class GoalView extends View
 
 		for (const percent of percents) {
 			let goal = goalsDec.get(percent);
+			let status = PointStatusEnum.WAIT;
+			let name = '';
 
-			if (!goal) {
-				goal = goal === null ? '???' : '';
+			if (goal) {
+				name = goal.name;
+				if (goal.status && showStatus) {
+					status = goal.status;
+				}
+			} else if (goal === null) {
+				name = '???';
 			}
 
-			text += percent + '% - ' + goal + '\n';
+			text += PointStatusToEmojiMap[status] + ' ' + percent + '% - ' + name + '\n';
 		}
 
 		if (question) {
@@ -61,23 +71,10 @@ export class GoalView extends View
 		await ctx.editMessageText(text, keyboard);
 	}
 
-	public async congratulateComplete (ctx: BotContext, goalName: string): Promise<void>
+	public async completeGoal (ctx: BotContext, percent: number, target: string = ''): Promise<void>
 	{
-		await ctx.reply(
-			this.locale.prepare('CONGRATULATE_COMPLETE', {
-				goal: goalName
-			}),
-			Markup.removeKeyboard()
-		);
-	}
+		const text = this.locale.prepare('COMPLETE_GOAL_' + percent, { target: target });
 
-	public async noMoreGoals (ctx: BotContext): Promise<void>
-	{
-		const text = this.locale.get('NO_MORE_GOALS');
-		const keyboard = Markup.inlineKeyboard([
-			Markup.button.callback(this.locale.get(ButtonEnum.START), ButtonEnum.START)
-		]);
-
-		await ctx.reply(text, keyboard);
+		await ctx.reply(text);
 	}
 }

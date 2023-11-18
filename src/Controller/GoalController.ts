@@ -8,6 +8,8 @@ import { GoalsDecMap } from '../ValueObject/GoalsDec';
 import { BotStateEnum } from '../Enum/BotStateEnum';
 import { UserService } from '../Service/UserService';
 import { CommandEnum } from '../Enum/CommandEnum';
+import { PointStatusEnum } from '../Enum/PointStatusEnum';
+import { Goal } from '../Entity/Goal';
 
 export class GoalController
 {
@@ -29,6 +31,7 @@ export class GoalController
 		this.bot.action(ButtonEnum.FORGET_CONFIRM, (ctx) => this.handleForget(ctx));
 
 		this.bot.command(CommandEnum.GOALS, (ctx) => this.handleShowGoalsDec(ctx));
+		this.bot.command(CommandEnum.MOVE, (ctx) => this.handleMoveCommand(ctx));
 	}
 
 	protected async handleEnter (ctx: BotContext): Promise<void>
@@ -85,7 +88,9 @@ export class GoalController
 				this.percentsDecRegister,
 				'GOAL_DEC_TITLE_FINAL',
 				'TODAY_QUESTION',
-				text
+				text,
+				'',
+				false
 			);
 
 			ctx.session.goalsDec = new GoalsDecMap();
@@ -117,7 +122,7 @@ export class GoalController
 
 		ctx.logger.info('Goal handleShowGoalsDec');
 
-		const goals = await this.goalService.getGoalsByUser(ctx.from.id);
+		const goals = await this.goalService.getGoalsByUser(ctx.from.id, this.percentsDec.length);
 
 		const goalsDec = GoalsDecMap.fromEntities(goals);
 
@@ -138,19 +143,27 @@ export class GoalController
 
 		const percent = this.decompositionScript[index];
 		const nextPercent = this.decompositionScript[index + 1];
+		const needGoal = this.decompositionScript[index + 2];
 
 		ctx.logger.info(index);
 		ctx.logger.info(percent, nextPercent);
 
 		if (percent && newGoal) {
-			ctx.session.goalsDec.set(percent, newGoal);
+			const goal = new Goal();
+			goal.percent = percent;
+			goal.name = newGoal;
+			goal.status = needGoal ? PointStatusEnum.WAIT : PointStatusEnum.WORK;
+
+			ctx.session.goalsDec.set(percent, goal);
 		}
 
-		if (!this.decompositionScript[index + 2]) {
+		if (!needGoal) {
 			return false;
 		}
 
 		ctx.session.goalsDec.set(nextPercent, null);
+
+		const targetGoal = ctx.session.goalsDec.get(100);
 
 		await this.goalView.showGoalsDec(
 			ctx,
@@ -158,10 +171,29 @@ export class GoalController
 			this.percentsDecRegister,
 			'GOAL_DEC_TITLE_' + (index + 1),
 			index === -1 ? 'MAIN_QUESTION' : 'QUESTION',
-			ctx.session.goalsDec.get(100) ?? '',
-			String(nextPercent)
+			targetGoal?.name ?? '',
+			String(nextPercent),
+			false
 		);
 
 		return true;
+	}
+
+	protected async handleMoveCommand (ctx: BotContext): Promise<void>
+	{
+		if (!ctx.from?.id) {
+			return;
+		}
+
+		ctx.logger.info('Goal moveToNextGoal');
+
+		const goals = await this.goalService.moveToNextGoal(ctx.from.id);
+
+		if (!goals.oldGoal) {
+			await this.goalView.reply(ctx, 'COMPLETE_GOAL_NOT_FOUND');
+			return;
+		}
+
+		await this.goalView.completeGoal(ctx, goals.oldGoal.percent, goals.newGoal?.name);
 	}
 }

@@ -1,4 +1,4 @@
-import { Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, DeleteDateColumn, PrimaryGeneratedColumn } from 'typeorm';
 import { PointStatusEnum } from '../Enum/PointStatusEnum';
 
 export abstract class Point
@@ -14,4 +14,7 @@ export abstract class Point
 
 	@Column({ type: 'bigint', unsigned: true })
 	userId!: number;
+
+	@DeleteDateColumn()
+	deletedAt?: Date;
 }

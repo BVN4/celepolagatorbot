@@ -196,7 +196,7 @@ export class GoalController
 		}
 
 		if (ctx.session.waitAnswer === WaitAnswerEnum.REGISTRATION && ctx.session.state === BotStateEnum.GOAL) {
-			await this.goalView.reply(ctx, 'NOT_UNDERSTAND_COMMAND');
+			await this.goalView.reply(ctx, 'NOT_UNDERSTAND_NO_GOALS');
 			return;
 		}
 

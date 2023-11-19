@@ -23,7 +23,7 @@ export class QuestService
 	{
 		return await this.questRepository.findOne({
 			where: {
-				status: PointStatusEnum.WAIT,
+				status: PointStatusEnum.WORK,
 				userId: userId
 			},
 			order: {
@@ -38,6 +38,7 @@ export class QuestService
 
 		quest.name = text;
 		quest.userId = userId;
+		quest.status = PointStatusEnum.WORK;
 
 		await this.questRepository.save(quest);
 	}

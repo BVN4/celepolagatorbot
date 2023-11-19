@@ -147,7 +147,7 @@ export class QuestController
 
 		ctx.session.state = BotStateEnum.QUEST;
 
-		if (quest && quest.status === PointStatusEnum.WAIT) {
+		if (quest && quest.status === PointStatusEnum.WORK) {
 			await this.questView.askResultQuestion(ctx.from.id, quest.name);
 			ctx.session.waitAnswer = WaitAnswerEnum.RESULT_QUESTION;
 			ctx.session.waitAnswerForQuest = quest.id;
@@ -156,6 +156,8 @@ export class QuestController
 			if (goal) {
 				await this.questView.askTodayQuestion(ctx.from.id, goal.name);
 				ctx.session.waitAnswer = WaitAnswerEnum.TODAY_QUESTION;
+			} else {
+				await this.questView.reply(ctx, 'NOT_UNDERSTAND_NO_GOALS');
 			}
 		}
 	}

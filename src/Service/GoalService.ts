@@ -47,16 +47,13 @@ export class GoalService
 	{
 		return await this.goalRepository.findOne({
 			where: {
-				status: PointStatusEnum.WAIT,
+				status: PointStatusEnum.WORK,
 				userId: userId
-			},
-			order: {
-				percent: 'ASC'
 			}
 		});
 	}
 
-	public async getGoalsByUser (userId: number, limit?: number): Promise<Goal[]>
+	public async getGoalsByUser (userId: number): Promise<Goal[]>
 	{
 		return await this.goalRepository.find({
 			where: {
@@ -64,8 +61,7 @@ export class GoalService
 			},
 			order: {
 				percent: 'ASC'
-			},
-			take: limit
+			}
 		});
 	}
 

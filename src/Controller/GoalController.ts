@@ -130,7 +130,12 @@ export class GoalController
 
 		ctx.logger.info('Goal handleShowGoalsDec');
 
-		const goals = await this.goalService.getGoalsByUser(ctx.from.id, this.percentsDec.length);
+		const goals = await this.goalService.getGoalsByUser(ctx.from.id);
+
+		if (!goals.length) {
+			await this.goalView.reply(ctx, 'NOT_UNDERSTAND_NO_GOALS');
+			return;
+		}
 
 		const goalsDec = GoalsDecMap.fromEntities(goals);
 
@@ -187,6 +192,11 @@ export class GoalController
 	protected async handleMoveCommand (ctx: BotContext): Promise<void>
 	{
 		if (!ctx.from?.id) {
+			return;
+		}
+
+		if (ctx.session.waitAnswer === WaitAnswerEnum.REGISTRATION && ctx.session.state === BotStateEnum.GOAL) {
+			await this.goalView.reply(ctx, 'NOT_UNDERSTAND_COMMAND');
 			return;
 		}
 

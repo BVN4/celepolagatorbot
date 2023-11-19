@@ -209,6 +209,11 @@ export class GoalController
 			return;
 		}
 
+		await this.questService.forgetQuests(ctx.from.id);
+
+		ctx.session.waitAnswer = WaitAnswerEnum.TODAY_QUESTION;
+		ctx.session.state = BotStateEnum.QUEST;
+
 		await this.goalView.completeGoal(ctx, goals.oldGoal.percent, goals.newGoal?.name);
 	}
 }

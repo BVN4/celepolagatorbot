@@ -73,7 +73,13 @@ export class GoalView extends View
 
 	public async completeGoal (ctx: BotContext, percent: number, target: string = ''): Promise<void>
 	{
-		const text = this.locale.prepare('COMPLETE_GOAL_' + percent, { target: target });
+		let text = this.locale.prepare('COMPLETE_GOAL_' + percent, { target: target });
+
+		if (target) {
+			text += '\n\n' + this.locale.prepare('TODAY_QUESTION', {
+				target: target,
+			});
+		}
 
 		await ctx.reply(text);
 	}

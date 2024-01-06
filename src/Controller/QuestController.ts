@@ -9,6 +9,7 @@ import { BotStateEnum } from '../Enum/BotStateEnum';
 import { QuestView } from '../View/QuestView';
 import { CommandEnum } from '../Enum/CommandEnum';
 import cron from 'node-cron';
+import { Logger } from '../System/Logger';
 
 export class QuestController
 {
@@ -18,7 +19,8 @@ export class QuestController
 		protected goalService: GoalService,
 		protected questService: QuestService,
 		protected userService: UserService,
-		protected questView: QuestView
+		protected questView: QuestView,
+		protected logger: Logger
 	)
 	{}
 
@@ -101,10 +103,15 @@ export class QuestController
 
 	protected async handleCron (): Promise<void>
 	{
+		this.logger.setPrefix('[CRON] ');
+
 		const users = await this.userService.getNextPointGroupByUser();
+
+		this.logger.info('Quest handleCron, found users: ' + users.length);
 
 		for (const user of users) {
 			if (!user.goals || !user.goals.length) {
+				this.logger.warn('User ' + user.id + ' has no goals');
 				continue;
 			}
 
@@ -114,6 +121,7 @@ export class QuestController
 				session.waitAnswer
 				&& [WaitAnswerEnum.RESULT_QUESTION, WaitAnswerEnum.TODAY_QUESTION].includes(session.waitAnswer)
 			) {
+				this.logger.warn('User ' + user.id + ' received a question');
 				continue; // Уже ждём ответа, не будем спамить
 			}
 
@@ -123,16 +131,20 @@ export class QuestController
 			session.state = BotStateEnum.QUEST;
 
 			if (quest && quest.status === PointStatusEnum.WAIT) {
+				this.logger.info('User ' + user.id + ' was ask result question');
 				await this.questView.askResultQuestion(user.id, quest.name);
 				session.waitAnswer = WaitAnswerEnum.RESULT_QUESTION;
 				session.waitAnswerForQuest = quest.id;
 			} else {
+				this.logger.info('User ' + user.id + ' was ask today question');
 				await this.questView.askTodayQuestion(user.id, goal.name);
 				session.waitAnswer = WaitAnswerEnum.TODAY_QUESTION;
 			}
 
 			this.botService.setSession(user.id, session);
 		}
+
+		this.logger.info('End Quest handleCron');
 	}
 
 	protected async handleDoneQuest (ctx: BotContext): Promise<void>

@@ -90,4 +90,9 @@ export class Logger
 	{
 		return new Date().toJSON().replaceAll(/[TZ]/g, ' ');
 	}
+
+	public setPrefix (prefix: LogPrefix): void
+	{
+		this.prefix = prefix;
+	}
 }

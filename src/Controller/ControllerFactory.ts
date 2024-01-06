@@ -12,6 +12,7 @@ import { QuestService } from '../Service/QuestService';
 import { UserService } from '../Service/UserService';
 import { QuestController } from './QuestController';
 import { QuestView } from '../View/QuestView';
+import { Logger } from '../System/Logger';
 
 /**
  * Контроллеры - Application Layer или Controller из MVC.
@@ -58,7 +59,8 @@ export class ControllerFactory extends Factory
 			System.get(GoalService),
 			System.get(QuestService),
 			System.get(UserService),
-			System.get(QuestView)
+			System.get(QuestView),
+			System.get(Logger)
 		);
 	}
 }

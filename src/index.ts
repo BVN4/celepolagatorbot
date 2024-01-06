@@ -1,7 +1,5 @@
 import { System } from './System/System';
-import { MainController } from './Controller/MainController';
 import { DB } from './DB';
-import { GoalController } from './Controller/GoalController';
 import { BotService } from './Service/BotService';
 import { Logger } from './System/Logger';
 import { Router } from './System/Router';

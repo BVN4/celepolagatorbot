@@ -13,6 +13,8 @@ import { UserService } from '../Service/UserService';
 import { QuestController } from './QuestController';
 import { QuestView } from '../View/QuestView';
 import { Logger } from '../System/Logger';
+import { DebugController } from './DebugController';
+import { DebugView } from '../View/DebugView';
 
 /**
  * Контроллеры - Application Layer или Controller из MVC.
@@ -26,6 +28,7 @@ export class ControllerFactory extends Factory
 		this.map.set(MainController, () => this.makeMainController());
 		this.map.set(GoalController, () => this.makeGoalController());
 		this.map.set(QuestController, () => this.makeQuestController());
+		this.map.set(DebugController, () => this.makeDebugController());
 
 		return this.map;
 	}
@@ -61,6 +64,15 @@ export class ControllerFactory extends Factory
 			System.get(UserService),
 			System.get(QuestView),
 			System.get(Logger)
+		);
+	}
+
+	protected makeDebugController (): DebugController
+	{
+		return new DebugController(
+			System.get(Telegraf<BotContext>),
+			System.get(BotService),
+			System.get(DebugView)
 		);
 	}
 }

@@ -5,7 +5,8 @@ export class Config
 		protected hostDB: string = '',
 		protected usernameDB: string = '',
 		protected passwordDB: string = '',
-		protected databaseDB: string = ''
+		protected databaseDB: string = '',
+		protected admins: number[] = []
 	)
 	{}
 
@@ -32,5 +33,10 @@ export class Config
 	public getDatabaseDB (): string
 	{
 		return this.databaseDB;
+	}
+
+	public getAdmins (): number[]
+	{
+		return this.admins;
 	}
 }

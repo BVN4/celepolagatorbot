@@ -10,6 +10,7 @@ import { User } from '../Entity/User';
 import { UserService } from './UserService';
 import { QuestService } from './QuestService';
 import { Quest } from '../Entity/Quest';
+import { Config } from '../Config/Config';
 
 /**
  * Сервис - Domain Layer.
@@ -31,7 +32,8 @@ export class ServiceFactory extends Factory
 	protected makeBotService (): BotService
 	{
 		return new BotService(
-			System.get(Telegraf<BotContext>)
+			System.get(Telegraf<BotContext>),
+			System.get(Config)
 		);
 	}
 

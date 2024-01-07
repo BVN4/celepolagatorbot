@@ -30,7 +30,8 @@ export class ConfigFactory extends Factory
 			process.env.DB_HOST?.toString(),
 			process.env.DB_USER?.toString(),
 			process.env.DB_PASSWORD?.toString(),
-			process.env.DB_DATABASE?.toString()
+			process.env.DB_DATABASE?.toString(),
+			process.env.ADMINS?.split(' ').map(Number) ?? [],
 		);
 	}
 }

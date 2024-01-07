@@ -8,6 +8,7 @@ import { Locale } from '../Locale/Locale';
 import { MainView } from './MainView';
 import { QuestView } from './QuestView';
 import { View } from './View';
+import { DebugView } from './DebugView';
 
 /**
  * View - содержит методы для вывода клиенту: отправка, редактирование сообщений и прочее.
@@ -20,6 +21,7 @@ export class ViewFactory extends Factory
 		this.map.set(GoalView, () => this.makeView(GoalView));
 		this.map.set(MainView, () => this.makeView(MainView));
 		this.map.set(QuestView, () => this.makeView(QuestView));
+		this.map.set(DebugView, () => this.makeView(DebugView));
 
 		return this.map;
 	}

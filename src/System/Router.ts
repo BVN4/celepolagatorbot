@@ -5,6 +5,7 @@ import { BotContext } from '../Service/BotService';
 import { message } from 'telegraf/filters';
 import { BotStateEnum } from '../Enum/BotStateEnum';
 import { QuestController } from '../Controller/QuestController';
+import { DebugController } from '../Controller/DebugController';
 
 export class Router
 {
@@ -12,7 +13,8 @@ export class Router
 		protected bot: Telegraf<BotContext>,
 		protected goalController: GoalController,
 		protected mainController: MainController,
-		protected questController: QuestController
+		protected questController: QuestController,
+		protected debugController: DebugController
 	)
 	{}
 
@@ -21,6 +23,7 @@ export class Router
 		this.goalController.init();
 		this.mainController.init();
 		this.questController.init();
+		this.debugController.init();
 
 		this.bot.on(message('text'), (ctx) => this.handleMessage(ctx));
 	}
@@ -35,6 +38,9 @@ export class Router
 				break;
 			case BotStateEnum.QUEST:
 				await this.questController.handleMessage(ctx);
+				break;
+			case BotStateEnum.DEBUG:
+				await this.debugController.handleMessage(ctx);
 				break;
 		}
 	}

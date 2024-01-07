@@ -4,6 +4,7 @@ import { BotStateEnum } from '../Enum/BotStateEnum';
 import { GoalsDecMap } from '../ValueObject/GoalsDec';
 import { WaitAnswerEnum } from '../Enum/WaitAnswerEnum';
 import { CommandEnum } from '../Enum/CommandEnum';
+import { Config } from '../Config/Config';
 
 export interface BotSession
 {
@@ -27,7 +28,8 @@ export class BotService
 	protected session: SessionStore<BotSession> = new Map();
 
 	constructor (
-		protected telegraf: Telegraf<BotContext>
+		protected telegraf: Telegraf<BotContext>,
+		protected config: Config
 	)
 	{}
 
@@ -89,6 +91,11 @@ export class BotService
 	protected makeSessionKey (userId: number): string
 	{
 		return userId + ':' + userId;
+	}
+
+	public isAdmin (userId: number): boolean
+	{
+		return this.config.getAdmins().includes(userId);
 	}
 
 	public launch (): void

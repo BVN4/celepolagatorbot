@@ -9,6 +9,7 @@ import { BotContext } from '../Service/BotService';
 import { GoalController } from '../Controller/GoalController';
 import { MainController } from '../Controller/MainController';
 import { QuestController } from '../Controller/QuestController';
+import { DebugController } from '../Controller/DebugController';
 
 export class SystemFactory extends Factory
 {
@@ -35,6 +36,7 @@ export class SystemFactory extends Factory
 			System.get(GoalController),
 			System.get(MainController),
 			System.get(QuestController),
+			System.get(DebugController),
 		);
 	}
 }

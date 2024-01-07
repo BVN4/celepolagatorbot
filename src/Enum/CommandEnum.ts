@@ -4,4 +4,5 @@ export enum CommandEnum
 	GOALS = 'goals',
 	MOVE = 'move',
 	START = 'start',
+	DUMP_SESSION = 'dump_session',
 }

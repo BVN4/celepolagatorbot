@@ -1,5 +1,6 @@
 export enum BotStateEnum
 {
 	GOAL,
-	QUEST
+	QUEST,
+	DEBUG
 }

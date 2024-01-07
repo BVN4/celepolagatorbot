@@ -130,7 +130,7 @@ export class QuestController
 
 			session.state = BotStateEnum.QUEST;
 
-			if (quest && quest.status === PointStatusEnum.WAIT) {
+			if (quest && quest.status === PointStatusEnum.WORK) {
 				this.logger.info('User ' + user.id + ' was ask result question');
 				await this.questView.askResultQuestion(user.id, quest.name);
 				session.waitAnswer = WaitAnswerEnum.RESULT_QUESTION;

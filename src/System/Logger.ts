@@ -67,7 +67,11 @@ export class Logger
 	{
 		const msg = this.C.RESET + this.getCurrentTimestamp() + this.prefix + color + str + this.C.RESET;
 
-		data ? console.log(msg, data) : console.log(msg);
+		console.log(msg);
+
+		if (data) {
+			console.log(data);
+		}
 	}
 
 	public info (str: LogStr, data?: LogData): void

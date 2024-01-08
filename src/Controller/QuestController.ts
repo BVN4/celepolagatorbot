@@ -1,4 +1,4 @@
-import { deunionize, Telegraf } from 'telegraf';
+import { deunionize, Telegraf, TelegramError } from 'telegraf';
 import { BotContext, BotService } from '../Service/BotService';
 import { GoalService } from '../Service/GoalService';
 import { QuestService } from '../Service/QuestService';
@@ -130,15 +130,25 @@ export class QuestController
 
 			session.state = BotStateEnum.QUEST;
 
-			if (quest && quest.status === PointStatusEnum.WORK) {
-				this.logger.info('User ' + user.id + ' was ask result question');
-				await this.questView.askResultQuestion(user.id, quest.name);
-				session.waitAnswer = WaitAnswerEnum.RESULT_QUESTION;
-				session.waitAnswerForQuest = quest.id;
-			} else {
-				this.logger.info('User ' + user.id + ' was ask today question');
-				await this.questView.askTodayQuestion(user.id, goal.name);
-				session.waitAnswer = WaitAnswerEnum.TODAY_QUESTION;
+			try {
+				if (quest && quest.status === PointStatusEnum.WORK) {
+					this.logger.info('User ' + user.id + ' was ask result question');
+					await this.questView.askResultQuestion(user.id, quest.name);
+					session.waitAnswer = WaitAnswerEnum.RESULT_QUESTION;
+					session.waitAnswerForQuest = quest.id;
+				} else {
+					this.logger.info('User ' + user.id + ' was ask today question');
+					await this.questView.askTodayQuestion(user.id, goal.name);
+					session.waitAnswer = WaitAnswerEnum.TODAY_QUESTION;
+				}
+			} catch (e) {
+				if (e instanceof TelegramError) {
+					this.logger.warn('Can\'t send message for user: ' + e, e.on);
+				} else {
+					this.logger.error('Unknown error', e);
+				}
+
+				continue;
 			}
 
 			this.botService.setSession(user.id, session);

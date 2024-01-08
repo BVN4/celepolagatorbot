@@ -10,4 +10,4 @@ npm install
 tsc
 
 # Run bot
-node dist/src/index.js >> /var/log/bot/celepolagatorbot/last.log
+node dist/src/index.js >> /var/log/bot/celepolagatorbot/last.log 2 >> /var/log/bot.error/celepolagatorbot/last.log

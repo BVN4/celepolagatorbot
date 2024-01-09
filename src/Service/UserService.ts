@@ -1,7 +1,6 @@
 import { Repository } from 'typeorm/repository/Repository';
 import { User } from '../Entity/User';
 import { PointStatusEnum } from '../Enum/PointStatusEnum';
-import { Not } from 'typeorm';
 
 export class UserService
 {
@@ -32,7 +31,10 @@ export class UserService
 			},
 			where: {
 				goals: {
-					status: PointStatusEnum.WAIT,
+					status: PointStatusEnum.WORK,
+				},
+				quests: {
+					status: PointStatusEnum.WORK,
 				}
 			},
 			order: {

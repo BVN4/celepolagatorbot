@@ -6,7 +6,7 @@ import { Quest } from './Quest';
 export class User
 {
 	@PrimaryColumn({ type: 'bigint', unsigned: true })
-	id!: number;
+	id!: number; // Тут на деле string!
 
 	@OneToMany(() => Goal, (goal) => goal.user, {
 		nullable: true,

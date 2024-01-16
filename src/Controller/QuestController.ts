@@ -96,6 +96,7 @@ export class QuestController
 				}
 			} else {
 				await this.questView.notUnderstand(ctx);
+				ctx.session.waitAnswer = WaitAnswerEnum.WHATS_NEXT;
 			}
 			return;
 		}

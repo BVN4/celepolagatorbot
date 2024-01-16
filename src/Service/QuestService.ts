@@ -39,6 +39,7 @@ export class QuestService
 		quest.name = text;
 		quest.userId = userId;
 		quest.status = PointStatusEnum.WORK;
+		quest.timestamp = Math.round(Date.now() / 1000);
 
 		await this.questRepository.save(quest);
 	}
